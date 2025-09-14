@@ -1,0 +1,7 @@
+1: In exams table:
+One exam per class, per exam type.
+Example: Class 6 – Mid Term – 2024–2025 – From Sep 1 to Sep 15.
+
+2: In exam_paper table:
+One entry per subject in that exam.
+Example: Math – Sep 2, 10:00 AM – 100 Marks.

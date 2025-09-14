@@ -1,0 +1,13 @@
+{
+    "Admissions": true,
+    "Fees": true,
+    "Schools": true,
+    "ClassesSections": true,
+    "PapersQuestions": true,
+    "ResultsPromotions": true,
+    "Certificates": true,
+    "Reports": true,
+    "Students": true,
+    "Teachers": true,
+    "Attendance": true
+}

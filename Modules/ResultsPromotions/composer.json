@@ -1,0 +1,30 @@
+{
+    "name": "nwidart/resultspromotions",
+    "description": "",
+    "authors": [
+        {
+            "name": "Nicolas Widart",
+            "email": "n.widart@gmail.com"
+        }
+    ],
+    "extra": {
+        "laravel": {
+            "providers": [],
+            "aliases": {
+
+            }
+        }
+    },
+    "autoload": {
+        "psr-4": {
+            "Modules\\ResultsPromotions\\": "app/",
+            "Modules\\ResultsPromotions\\Database\\Factories\\": "database/factories/",
+            "Modules\\ResultsPromotions\\Database\\Seeders\\": "database/seeders/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Modules\\ResultsPromotions\\Tests\\": "tests/"
+        }
+    }
+}

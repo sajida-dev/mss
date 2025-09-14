@@ -1,0 +1,11 @@
+{
+    "name": "ResultsPromotions",
+    "alias": "resultspromotions",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\ResultsPromotions\\Providers\\ResultsPromotionsServiceProvider"
+    ],
+    "files": []
+}

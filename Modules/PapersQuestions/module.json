@@ -1,0 +1,11 @@
+{
+    "name": "PapersQuestions",
+    "alias": "papersquestions",
+    "description": "",
+    "keywords": [],
+    "priority": 0,
+    "providers": [
+        "Modules\\PapersQuestions\\Providers\\PapersQuestionsServiceProvider"
+    ],
+    "files": []
+}
