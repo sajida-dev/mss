@@ -13,6 +13,7 @@ import 'vue3-easy-data-table/dist/style.css';
 import mitt from 'mitt';
 import GlobalAlertDialog from './components/GlobalAlertDialog.vue';
 import vCan from './plugins/v-can';
+import Vue3Marquee from 'vue3-marquee'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Multi Schools System';
 
@@ -27,6 +28,7 @@ createInertiaApp({
             .use(vCan)
             .use(ZiggyVue)
             .use(pinia)
+            .use(Vue3Marquee)
             .use(Vue3Toastify, {
                 autoClose: 3000,
                 position: "top-right",

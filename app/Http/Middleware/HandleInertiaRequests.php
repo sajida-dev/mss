@@ -66,7 +66,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'activeSchool' => fn() => School::find(session('active_school_id')),
-            'upcommingExams' => $upcomingExams,
+            'upcomingExams' => $upcomingExams,
         ]);
     }
 }

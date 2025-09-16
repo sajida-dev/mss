@@ -27,6 +27,7 @@
         "@fullcalendar/daygrid": "^6.1.18",
         "@fullcalendar/vue3": "^6.1.18",
         "@inertiajs/vue3": "^2.0.0",
+        "@selemondev/vue3-marquee": "^0.0.9",
         "@tailwindcss/vite": "^4.1.1",
         "@vitejs/plugin-vue": "^5.2.1",
         "@vueuse/core": "^12.8.2",
