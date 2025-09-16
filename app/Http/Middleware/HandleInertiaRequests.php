@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Middleware;
 use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\Schools\App\Models\School;
@@ -40,10 +41,41 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        $upcomingExams = Exam::whereNotNull('result_entry_deadline')
+        // $upcomingExams = Exam::whereNotNull('result_entry_deadline')
+        //     ->whereDate('result_entry_deadline', '>', now())
+        //     ->orderBy('result_entry_deadline', 'asc')
+        //     ->get(['id', 'title', 'result_entry_deadline', 'class_id', 'section_id']);
+
+        $exams = Exam::with('examType')
+            ->whereNotNull('result_entry_deadline')
             ->whereDate('result_entry_deadline', '>', now())
             ->orderBy('result_entry_deadline', 'asc')
-            ->get(['id', 'title', 'result_entry_deadline', 'class_id', 'section_id']);
+            ->get(['id', 'exam_type_id', 'academic_year', 'result_entry_deadline', 'class_id', 'section_id']);
+
+        // group by exam type name + deadline date
+        $grouped = $exams->groupBy(function ($exam) {
+            $examTypeName = $exam->examType?->name ?? 'Unknown Exam Type';
+            $date = \Carbon\Carbon::parse($exam->result_entry_deadline)->format('Y-m-d');
+            return $examTypeName . '|' . $date;
+        });
+
+        // pick first exam per group
+        $upcomingExams = $grouped->map(fn($group) => $group->first())->values();
+
+        // optionally, add all classes sharing this exam group
+        $upcomingExams = $grouped->map(function ($group) {
+            $first = $group->first();
+            $examTypeName = $first->examType?->name ?? 'Unknown Exam Type';
+            $date = \Carbon\Carbon::parse($first->result_entry_deadline)->format('Y-m-d');
+
+            $classes = $group->pluck('class_id')->unique()->values();
+            $first->classes = $classes;
+            $first->exam_type_name = $examTypeName;
+            $first->date = $date;
+            return $first;
+        })->values();
+
+
         if ($user && $user->hasRole('superadmin')) {
             setPermissionsTeamId(null);
         } else {
