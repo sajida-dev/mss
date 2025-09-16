@@ -1,10 +1,13 @@
 <?php
 
-namespace Modules\ClassesSections\app\Models;
+namespace Modules\ClassesSections\App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\ClassesSections\App\Models\Subject;
+use Modules\Schools\App\Models\School;
 
 class ClassSubject extends Model
 {
@@ -28,7 +31,7 @@ class ClassSubject extends Model
      */
     public function class(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\ClassModel::class, 'class_id');
+        return $this->belongsTo(ClassModel::class, 'class_id');
     }
 
     /**
@@ -36,7 +39,7 @@ class ClassSubject extends Model
      */
     public function subject(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\Subject::class, 'subject_id');
+        return $this->belongsTo(Subject::class, 'subject_id');
     }
 
     /**
@@ -44,7 +47,7 @@ class ClassSubject extends Model
      */
     public function school(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Schools\App\Models\School::class, 'school_id');
+        return $this->belongsTo(School::class, 'school_id');
     }
 
     /**

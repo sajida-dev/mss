@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\Schools\App\Models\School;
 use Tighten\Ziggy\Ziggy;
 
@@ -39,6 +40,10 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
+        $upcomingExams = Exam::whereNotNull('result_entry_deadline')
+            ->whereDate('result_entry_deadline', '>', now())
+            ->orderBy('result_entry_deadline', 'asc')
+            ->get(['id', 'title', 'result_entry_deadline', 'class_id', 'section_id']);
         if ($user && $user->hasRole('superadmin')) {
             setPermissionsTeamId(null);
         } else {
@@ -61,6 +66,7 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'activeSchool' => fn() => School::find(session('active_school_id')),
+            'upcommingExams' => $upcomingExams,
         ]);
     }
 }

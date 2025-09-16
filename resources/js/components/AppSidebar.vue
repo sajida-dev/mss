@@ -41,7 +41,7 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Manage Classes & Sections',
         href: '/manage/classes-sections',
-        icon: School, // or Layers, or another relevant icon
+        icon: School,
         permission: 'manage-classes',
 
     },

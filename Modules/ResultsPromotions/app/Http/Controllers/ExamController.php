@@ -107,6 +107,7 @@ class ExamController extends Controller
             'result_entry_deadline' => 'required|date|after:end_date',
             'instructions'  => 'nullable|string',
         ]);
+
         $data['school_id'] = session('active_school_id');
         $examType = ExamType::find($data['exam_type_id']);
 
@@ -115,16 +116,27 @@ class ExamController extends Controller
                 foreach ($data['class_ids'] as $classId) {
                     $class = ClassModel::find($classId);
                     $sections = $class->sections()->get();
+
                     foreach ($sections as $section) {
+                        $startDate = Carbon::parse($data['start_date']);
                         $examData = [...$data];
                         $examData['section_id'] = $section->id;
                         $examData['class_id'] = $classId;
+                        $examData['academic_year'] = $startDate->format('Y-Y');
                         $examData['title'] = "{$class->name} - {$section->name} | {$examType->name} Exam ({$examData['academic_year']})";
-                        $examData['academic_year'] = $examData['start_date']->format('Y-y');
-                        Exam::create($examData);
+
+                        Exam::updateOrCreate(
+                            [
+                                'class_id' => $examData['class_id'],
+                                'section_id' => $examData['section_id'],
+                                'exam_type_id' => $examData['exam_type_id'],
+                            ],
+                            $examData
+                        );
                     }
                 }
             });
+
             return redirect()->route('exams.index')->with('success', 'Exam created for all selected classes.');
         } catch (\Throwable $e) {
             return back()->with('error', 'Failed: ' . $e->getMessage());

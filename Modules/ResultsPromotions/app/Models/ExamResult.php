@@ -2,6 +2,7 @@
 
 namespace Modules\ResultsPromotions\app\Models;
 
+use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admissions\App\Models\Student;
@@ -36,5 +37,9 @@ class ExamResult extends Model
     public function images()
     {
         return $this->hasMany(ExamResultImage::class);
+    }
+    public function markedBy()
+    {
+        return $this->belongsTo(User::class, 'marked_by');
     }
 }

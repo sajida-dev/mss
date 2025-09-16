@@ -54,7 +54,8 @@ class ExamResultController extends Controller
                     'class',
                     'section',
                     'results.examPaper.exam.examType',  // you have this
-                    'results.examPaper.subject'         // ensure subject is loaded so you can show subject
+                    'results.examPaper.subject',         // ensure subject is loaded so you can show subject
+                    'results.markedBy'                   // load the user who marked the result
                 ])
                 ->orderBy('registration_number')
                 ->get();
@@ -72,7 +73,11 @@ class ExamResultController extends Controller
                         'subject_name'    => optional($result->examPaper->subject)->name,
                         'obtained_marks'  => $result->obtained_marks,
                         'total_marks'     => $result->total_marks,
-                        'exam_paper_title' => optional($result->examPaper)->title,
+                        'percentage' => $result->percentage,
+                        'status' => $result->status,
+                        'promotion_status' => $result->promotion_status,
+                        'remarks' => $result->remarks,
+                        'marked_by' => $result->markedBy ? $result->markedBy->name : 'NAN',
                         // you can add more fields if needed (date, etc.)
                     ];
                 });

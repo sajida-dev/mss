@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Crypt;
 use Modules\Schools\App\Models\School;
 use Modules\Teachers\Models\Teacher;
 use Illuminate\Support\Facades\Storage;
+use Modules\ResultsPromotions\app\Models\ExamResult;
 
 /**
  * @method bool hasRole(string|array $roles, string|null $guard = null)
@@ -159,5 +160,10 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         // You can return the active school from session or user property
         return session('active_school_id') ?? $this->last_school_id ?? null;
+    }
+
+    public function result()
+    {
+        return $this->hasMany(ExamResult::class, 'marked_by');
     }
 }

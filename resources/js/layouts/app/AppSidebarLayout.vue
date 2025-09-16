@@ -4,19 +4,25 @@ import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
 import GlobalAlertDialog from '@/components/GlobalAlertDialog.vue';
+import ResultDeadlineTicker from '@/components/ResultDeadlineTicker.vue';
 import type { BreadcrumbItemType } from '@/types';
 import { usePage } from '@inertiajs/vue3';
-import { watch } from 'vue';
+import { ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import 'vue3-toastify/dist/index.css';
 
 interface Props {
     breadcrumbs?: BreadcrumbItemType[];
+    upcomingExams: unknown[];
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
+    upcomingExams: () => [],
 });
+
+
+const upcomingExams = ref(props.upcomingExams);
 
 const page = usePage();
 const flash = (page.props.flash ?? {}) as { success?: string; error?: string };
@@ -58,6 +64,8 @@ watch(
                 <AppSidebarHeader :breadcrumbs="breadcrumbs" />
                 <AppContent variant="sidebar" class="flex flex-col overflow-x-hidden">
                     <!-- Add proper spacing for fixed school switcher -->
+                    <ResultDeadlineTicker :exams="upcomingExams" />
+
                     <div class="mt-14 md:mt-3 lg:mt-3">
                         <slot />
                     </div>

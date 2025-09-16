@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\ClassesSections\app\Models;
+namespace Modules\ClassesSections\App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Modules\ClassesSections\App\Models\ClassModel;
@@ -19,7 +19,7 @@ class Section extends Model
     public function classSchools()
     {
         return $this->belongsToMany(
-            \Modules\ClassesSections\App\Models\ClassModel::class,
+            ClassModel::class,
             'class_school_sections',
             'section_id',
             'class_school_id'

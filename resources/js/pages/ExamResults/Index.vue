@@ -9,7 +9,7 @@
                 Exam Results
             </h1>
             <div
-                class="bg-white grid grid-cols-1  my-5 lg:grid-cols-4 gap-5 dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
+                class="bg-white grid grid-cols-1  my-5 lg:grid-cols-4 gap-5 dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-3">
                 <!-- <h2 class="text-lg font-semibold mb-4">Filters</h2> -->
                 <!-- Class -->
                 <div class="mb-4">
@@ -44,7 +44,7 @@
 
                 <!-- Exam filter -->
                 <div class="mb-4">
-                    <Label for="exam_paper" class="block text-sm font-medium dark:text-gray-200">Exam Paper</Label>
+                    <Label for="exam_paper" class="block text-sm font-medium dark:text-gray-200">Exam</Label>
                     <select id="exam_paper" v-model="selectedExam"
                         class="mt-1 block w-full px-3 py-2 border rounded-md bg-white dark:bg-neutral-800 dark:border-neutral-600 text-gray-900 dark:text-gray-100">
                         <option value="">All Exams</option>
@@ -55,7 +55,7 @@
                 </div>
 
             </div>
-            <div class=" flex flex-col lg:flex-row gap-6">
+            <div class=" flex flex-col lg:flex-row gap-6" v-if="results.length > 0">
 
                 <!-- Left panel: Filters & Student List -->
                 <div class="w-full lg:w-1/3 space-y-6">
@@ -86,42 +86,6 @@
                     </div>
                 </div>
 
-                <!-- Right panel: Selected student detail view -->
-                <!-- <div
-                    class="w-full lg:w-2/3 bg-white dark:bg-neutral-900 rounded-xl border border-gray-200 dark:border-neutral-700 p-6">
-                    <div v-if="selectedStudent">
-                        <h2 class="text-xl font-semibold dark:text-gray-100">{{ selectedStudent.student.name }}'s
-                            Detailed
-                            Result</h2>
-                        <p class="text-sm dark:text-gray-400 mb-4">Reg#: {{ selectedStudent.student.registration_number
-                        }}
-                        </p>
-
-                        <table class="w-full text-sm border-collapse">
-                            <thead class="bg-gray-50 dark:bg-neutral-800">
-                                <tr>
-                                    <th class="px-4 py-2 text-left">Subject</th>
-                                    <th class="px-4 py-2 text-left">Exam Paper</th>
-                                    <th class="px-4 py-2 text-left">Obtained Marks</th>
-                                    <th class="px-4 py-2 text-left">Total Marks</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200 dark:divide-neutral-700">
-                                <tr v-for="item in selectedStudent.results" :key="item.subject_id">
-                                    <td class="px-4 py-2">{{ item.subject_name }}</td>
-                                    <td class="px-4 py-2">{{ item.exam_paper_title }}</td>
-                                    <td class="px-4 py-2">{{ item.obtained_marks }}</td>
-                                    <td class="px-4 py-2">{{ item.total_marks }}</td>
-                                </tr>
-                            </tbody>
-                        </table>
-
-                    </div>
-                    <div v-else class="text-center dark:text-gray-400">
-                        <p>Select a student from left to view detail result</p>
-                    </div>
-                </div> -->
-
                 <div v-if="selectedStudent"
                     class="bg-white dark:bg-neutral-900 w-full rounded-xl border border-gray-200 dark:border-neutral-700 p-6 ">
                     <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
@@ -136,31 +100,48 @@
                                         <th
                                             class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Subject</th>
-                                        <th
-                                            class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                                            Exam Paper</th>
+
                                         <th
                                             class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Obtained</th>
                                         <th
                                             class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                             Total</th>
+                                        <th
+                                            class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Percentage</th>
+                                        <th
+                                            class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Status</th>
+                                        <th
+                                            class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Remarks</th>
+                                        <th
+                                            class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                                            Marked By</th>
                                     </tr>
                                 </thead>
                                 <tbody
                                     class="bg-white dark:bg-neutral-900 divide-y divide-gray-200 dark:divide-neutral-700">
-                                    <tr v-for="item in selectedStudent.results"
-                                        :key="item.subject_id + '-' + item.exam_paper_title"
+                                    <tr v-for="item in selectedStudent.results" :key="item.subject_id"
                                         class="hover:bg-gray-50 dark:hover:bg-neutral-800">
                                         <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
                                             item.subject_name }}</td>
-                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
-                                            item.exam_paper_title }}</td>
+
                                         <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
                                             item.obtained_marks }}</td>
                                         <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
                                             item.total_marks }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
+                                            item.percentage }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
+                                            item.status }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
+                                            item.remarks }}</td>
+                                        <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
+                                            item.marked_by }}</td>
                                     </tr>
+
                                 </tbody>
                             </table>
                         </div>
@@ -180,10 +161,21 @@
                     </div>
                 </div>
 
-                <div v-else class="text-center text-gray-500 dark:text-gray-400 mt-6">
+                <div v-else class="text-center justify-center items-center text-gray-500 dark:text-gray-400 mt-6">
                     <p>Select a student to view their detailed results.</p>
                 </div>
 
+            </div>
+            <!-- Empty State when no class selected -->
+            <div v-else class="text-center py-12">
+                <div
+                    class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <Building2 class="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 class="text-xl font-medium text-gray-900 dark:text-gray-100 mb-3">Select a Class and Term</h3>
+                <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">
+                    Choose a class from the dropdown above to view and manage subject assignments
+                </p>
             </div>
 
         </div>
@@ -199,7 +191,6 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Label } from '@/components/ui/label';
 import { Building2, Users, Calendar } from 'lucide-vue-next';
 import axios from 'axios';
-import { h } from 'vue';
 
 interface Student {
     id: number;
@@ -211,9 +202,13 @@ interface Student {
 interface ResultItem {
     subject_id: number;
     subject_name: string;
-    exam_paper_title: string;
+    percentage: number;
     obtained_marks: number;
     total_marks: number;
+    status: string;
+    promotion_status: string;
+    remarks: string;
+    marked_by: string | null;
 }
 
 interface Result {
@@ -262,6 +257,7 @@ const terms = props.terms;
 
 // Results returned from backend
 const results = ref<Result[]>(props.results);
+
 
 // Currently selected student
 const selectedStudent = ref<Result | null>(null);
@@ -319,4 +315,12 @@ function selectStudent(res: Result) {
     selectedStudent.value = res;
 }
 
+watch(() => props.results, (newResults) => {
+    results.value = newResults;
+    if (newResults && newResults.length > 0) {
+        selectedStudent.value = newResults[0];
+    } else {
+        selectedStudent.value = null;
+    }
+}, { immediate: true });
 </script>

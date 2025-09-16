@@ -1,0 +1,67 @@
+<template>
+    <div
+        class="bg-yellow-100 dark:bg-yellow-900/20 border-b border-yellow-300 dark:border-yellow-700 py-2 px-4 overflow-hidden">
+        <div v-for="exam in exams" :key="exam.id">
+            🔔 <strong>{{ exam.title }}</strong> — Deadline: {{ formatDate(exam.result_entry_deadline) }}
+            — Time Left: {{ countdowns[exam.id] || '...' }}
+            <span class="mx-8">|</span>
+        </div>
+        <Marquee :pauseOnHover="true" :speed="30" class="text-sm text-yellow-800 dark:text-yellow-300 marquee">
+            <template v-for="exam in exams" :key="exam.id">
+                🔔 <strong>{{ exam.title }}</strong> — Deadline: {{ formatDate(exam.result_entry_deadline) }}
+                — Time Left: {{ countdowns[exam.id] || '...' }}
+                <span class="mx-8">|</span>
+            </template>
+        </Marquee>
+
+    </div>
+</template>
+
+<script setup>
+import { ref, onMounted } from 'vue';
+import Marquee from 'vue3-marquee';
+
+import dayjs from 'dayjs';
+import duration from 'dayjs/plugin/duration';
+dayjs.extend(duration);
+
+const props = defineProps({
+    exams: {
+        type: Array,
+        required: true,
+    },
+});
+
+const countdowns = ref({});
+
+function updateCountdowns() {
+    props.exams.forEach(exam => {
+        const deadline = dayjs(exam.result_entry_deadline);
+        const now = dayjs();
+        const diff = deadline.diff(now);
+
+        if (diff <= 0) {
+            countdowns.value[exam.id] = 'Deadline passed!';
+        } else {
+            const d = dayjs.duration(diff);
+            countdowns.value[exam.id] = `${d.days()}d ${d.hours()}h ${d.minutes()}m ${d.seconds()}s`;
+        }
+    });
+}
+
+function formatDate(date) {
+    return dayjs(date).format('YYYY-MM-DD HH:mm');
+}
+
+onMounted(() => {
+    updateCountdowns();
+    setInterval(updateCountdowns, 1000);
+});
+</script>
+<style scoped>
+.marquee {
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+}
+</style>

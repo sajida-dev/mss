@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import duration from 'dayjs/plugin/duration';
 
 dayjs.extend(duration);
+const deadlinePassed = ref(false);
 
 const props = defineProps({
     deadline: String, // from backend e.g. 2025-09-20T23:59:00
@@ -28,11 +29,14 @@ function updateCountdown() {
 
     if (diff <= 0) {
         countdown.value = 'Deadline has passed!';
+        deadlinePassed.value = true;
         return;
     }
 
     const d = dayjs.duration(diff);
     countdown.value = `${d.days()}d ${d.hours()}h ${d.minutes()}m ${d.seconds()}s`;
+    deadlinePassed.value = false;
+
 }
 
 onMounted(() => {

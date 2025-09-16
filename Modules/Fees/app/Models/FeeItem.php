@@ -5,6 +5,7 @@ namespace Modules\Fees\App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Fees\App\Models\Fee;
 
 class FeeItem extends Model
 {

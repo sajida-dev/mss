@@ -1,6 +1,6 @@
 <?php
 
-namespace Modules\Schools\App\Imports;
+namespace Modules\Schools\Imports;
 
 use Modules\Schools\App\Models\School;
 use Maatwebsite\Excel\Concerns\ToModel;

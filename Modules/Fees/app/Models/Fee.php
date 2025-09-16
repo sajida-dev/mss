@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Modules\Fees\App\Models\FeeItem;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Modules\Fees\Models\FeeInstallment;
+use Modules\Admissions\App\Models\Student;
+use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\Fees\App\Models\FeeInstallment;
 
 class Fee extends Model
 {
@@ -27,12 +29,12 @@ class Fee extends Model
 
     public function student(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Admissions\App\Models\Student::class);
+        return $this->belongsTo(Student::class);
     }
 
     public function class(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\ClassModel::class, 'class_id');
+        return $this->belongsTo(ClassModel::class, 'class_id');
     }
 
     public function feeItems(): HasMany
