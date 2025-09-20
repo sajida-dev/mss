@@ -221,11 +221,11 @@
                         <EyeOff v-if="row.published" class="w-5 h-5" />
                         <Eye v-else class="w-5 h-5" />
                     </button>
-                    <!-- <button v-can="'update-papers'"
-                    class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
-                    @click="editPaper(row.id)" aria-label="Edit Paper" title="Edit Paper">
-                    <Edit class="w-5 h-5" />
-                </button> -->
+                    <button v-can="'update-papers'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
+                        @click="editPaper(row.id)" aria-label="Edit Paper" title="Edit Paper">
+                        <Edit class="w-5 h-5" />
+                    </button>
                     <button v-can="'delete-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeletePaper(row.id)" aria-label="Delete Paper" title="Delete Paper">
@@ -424,6 +424,7 @@ const headers = [
     { text: 'Duration', value: 'duration' },
     { text: 'Total Marks', value: 'total_marks' },
     { text: 'Questions', value: 'questions_count' },
+    { text: 'Year', value: 'year' },
     { text: 'Status', value: 'published' },
     { text: 'Actions', value: 'actions', sortable: false },
 ];

@@ -11,16 +11,13 @@ return new class extends Migration
         Schema::create('academic_results', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('student_id');
-            $table->string('academic_year');
+            $table->unsignedBigInteger('academic_year_id');
             $table->unsignedBigInteger('class_id');
             $table->unsignedBigInteger('section_id')->nullable();
 
-            // Term-wise results (calculated from term_results table)
-            $table->decimal('term1_percentage', 5, 2)->nullable();
-            $table->decimal('term2_percentage', 5, 2)->nullable();
-            $table->decimal('term3_percentage', 5, 2)->nullable();
-
             // Overall calculations
+            $table->decimal('total_marks', 8, 2);
+            $table->decimal('obtained_marks', 8, 2);
             $table->decimal('overall_percentage', 5, 2);
             $table->decimal('cumulative_gpa', 4, 2);
             $table->string('final_grade'); // A+, A, B+, B, C, D, F
@@ -39,13 +36,14 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->foreign('academic_year_id')->references('id')->on('academic_years')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->foreign('section_id')->references('id')->on('sections')->onDelete('set null');
             $table->foreign('verified_by')->references('id')->on('users')->onDelete('set null');
             $table->foreign('approved_by')->references('id')->on('users')->onDelete('set null');
-            $table->unique(['student_id', 'academic_year']); // One result per student per year
-            $table->index(['student_id', 'academic_year', 'class_id']);
+            $table->unique(['student_id', 'academic_year_id']); // One result per student per year
+            $table->index(['student_id', 'academic_year_id', 'class_id']);
         });
     }
 

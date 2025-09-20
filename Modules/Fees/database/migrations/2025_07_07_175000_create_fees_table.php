@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('student_id');
             $table->unsignedBigInteger('class_id');
+            $table->unsignedBigInteger('academic_year_id');
             $table->enum('type', ['admission', 'monthly', 'papers', 'installments'])->default('admission');
             $table->decimal('amount', 10, 2);
             $table->enum('status', ['unpaid', 'paid', 'cancelled'])->default('unpaid');
@@ -21,6 +22,7 @@ return new class extends Migration
             $table->string('paid_voucher_image')->nullable();
             $table->timestamps();
             $table->softDeletes();
+            $table->foreign('academic_year_id')->references('id')->on('academic_years')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->index('student_id');

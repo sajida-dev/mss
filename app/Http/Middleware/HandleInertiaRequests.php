@@ -41,16 +41,11 @@ class HandleInertiaRequests extends Middleware
     public function share(Request $request): array
     {
         $user = $request->user();
-        // $upcomingExams = Exam::whereNotNull('result_entry_deadline')
-        //     ->whereDate('result_entry_deadline', '>', now())
-        //     ->orderBy('result_entry_deadline', 'asc')
-        //     ->get(['id', 'title', 'result_entry_deadline', 'class_id', 'section_id']);
-
         $exams = Exam::with('examType')
             ->whereNotNull('result_entry_deadline')
             ->whereDate('result_entry_deadline', '>', now())
             ->orderBy('result_entry_deadline', 'asc')
-            ->get(['id', 'exam_type_id', 'academic_year', 'result_entry_deadline', 'class_id', 'section_id']);
+            ->get(['id', 'exam_type_id', 'academic_year_id', 'result_entry_deadline', 'class_id', 'section_id']);
 
         // group by exam type name + deadline date
         $grouped = $exams->groupBy(function ($exam) {

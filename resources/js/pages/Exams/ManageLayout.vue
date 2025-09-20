@@ -4,7 +4,7 @@
 
         <Head title="Manage Exams" />
 
-        <div class="max-w-5xl mx-auto w-full px-4 py-6 sm:py-8">
+        <div class="max-w-6xl mx-auto w-full px-4 py-6 sm:py-8">
             <h1
                 class="text-2xl sm:text-3xl font-bold text-neutral-900 dark:text-neutral-100 mb-6 flex items-center gap-3">
                 <FileText class="w-8 h-8 text-blue-600" />

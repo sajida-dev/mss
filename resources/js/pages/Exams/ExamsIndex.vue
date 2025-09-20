@@ -248,7 +248,9 @@ const headers = [
     { text: 'Type', value: 'exam_type_name', sortable: false, slotName: 'item-exam_type_name' },
     { text: 'Class', value: 'class_name', sortable: false, slotName: 'item-class_name' },
     { text: 'Section', value: 'section_name', sortable: false, slotName: 'item-section_name' },
+    { text: 'Academic Year', value: 'academic_year', sortable: false },
     { text: 'Dates', value: 'dates', sortable: false, slotName: 'item-dates' },
+    { text: 'Result Entry Deadline', value: 'result_entry_deadline', sortable: false, slotName: 'item-result_entry_deadline' },
     { text: 'Status', value: 'status' },
     { text: 'Actions', value: 'actions', sortable: false, slotName: 'item-actions' },
 ];

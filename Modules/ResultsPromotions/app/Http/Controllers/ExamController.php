@@ -119,17 +119,63 @@ class ExamController extends Controller
 
                     foreach ($sections as $section) {
                         $startDate = Carbon::parse($data['start_date']);
+                        $examTypeCode = $examType->code;
                         $examData = [...$data];
                         $examData['section_id'] = $section->id;
                         $examData['class_id'] = $classId;
-                        $examData['academic_year'] = $startDate->format('Y-Y');
-                        $examData['title'] = "{$class->name} - {$section->name} | {$examType->name} Exam ({$examData['academic_year']})";
 
+                        // Academic Year Calculation
+                        if ($examTypeCode === '1st_term') {
+                            $academicYear = $startDate->format('Y') . '-' . $startDate->copy()->addYear()->format('Y');
+                        } else {
+                            // Try finding 1st term exam to get academic year
+                            $firstTermExam = Exam::where('class_id', $classId)
+                                ->where('section_id', $section->id)
+                                ->where('school_id', $data['school_id'])
+                                ->whereHas('examType', fn($q) => $q->where('code', '1st_term'))
+                                ->orderByDesc('created_at')
+                                ->first();
+
+                            if (!$firstTermExam) {
+                                throw new \Exception("Cannot create {$examType->name} for {$class->name} - {$section->name} without creating 1st Term first.");
+                            }
+
+                            $academicYear = $firstTermExam->academic_year;
+
+                            // Optional: Enforce 2nd term must have 1st, 3rd must have 1st and 2nd
+                            if ($examTypeCode === '2nd_term') {
+                                $termCheck = Exam::where('academic_year', $academicYear)
+                                    ->where('class_id', $classId)
+                                    ->where('section_id', $section->id)
+                                    ->whereHas('examType', fn($q) => $q->where('code', '1st_term'))
+                                    ->exists();
+
+                                if (!$termCheck) {
+                                    throw new \Exception("Cannot create 2nd Term without 1st Term for {$class->name} - {$section->name}.");
+                                }
+                            } elseif ($examTypeCode === '3rd_term') {
+                                $termCheck = Exam::where('academic_year', $academicYear)
+                                    ->where('class_id', $classId)
+                                    ->where('section_id', $section->id)
+                                    ->whereHas('examType', fn($q) => $q->whereIn('code', ['1st_term', '2nd_term']))
+                                    ->count();
+
+                                if ($termCheck < 2) {
+                                    throw new \Exception("Cannot create 3rd Term without both 1st and 2nd Terms for {$class->name} - {$section->name}.");
+                                }
+                            }
+                        }
+
+                        $examData['academic_year'] = $academicYear;
+                        $examData['title'] = "{$class->name} - {$section->name} | {$examType->name} Exam ({$academicYear})";
+
+                        // Avoid duplicate for same class/section/exam type/academic year
                         Exam::updateOrCreate(
                             [
                                 'class_id' => $examData['class_id'],
                                 'section_id' => $examData['section_id'],
                                 'exam_type_id' => $examData['exam_type_id'],
+                                'academic_year' => $academicYear,
                             ],
                             $examData
                         );

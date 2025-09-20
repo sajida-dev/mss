@@ -2,6 +2,7 @@
 
 namespace Modules\ResultsPromotions\app\Models;
 
+use App\Models\AcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admissions\App\Models\Student;
@@ -13,7 +14,7 @@ class AcademicResult extends Model
 
     protected $fillable = [
         'student_id',
-        'academic_year',
+        'academic_year_id',
         'class_id',
         'section_id',
         'term1_percentage',
@@ -34,5 +35,9 @@ class AcademicResult extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
     }
 }

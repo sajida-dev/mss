@@ -13,6 +13,8 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('class_school_id');
             $table->unsignedBigInteger('section_id');
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+
             $table->timestamps();
             $table->softDeletes();
 

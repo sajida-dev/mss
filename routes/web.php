@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
@@ -19,6 +20,7 @@ Route::get('dashboard', [App\Http\Controllers\DashboardController::class, 'index
     ->name('dashboard');
 
 Route::middleware(['auth', 'set.active.school', 'team.permission'])->prefix('admin')->name('admin.')->group(function () {
+    Route::resource('academic-years', AcademicYearController::class)->except(['show']);
 
     // Simple explicit routes instead of resource routes to avoid model binding conflicts
     Route::get('roles', [RoleController::class, 'index']);

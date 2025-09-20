@@ -265,7 +265,7 @@ class PapersQuestionsController extends Controller
         if ($class) {
             $titleParts[] = 'Class ' . $class->name;
         }
-
+        $titleParts[] = date('Y');
         $generatedTitle = implode(' - ', $titleParts);
         try {
             DB::beginTransaction();

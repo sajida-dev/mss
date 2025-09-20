@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
             $table->foreignId('section_id')->nullable()->constrained('sections')->nullOnDelete();
 
-            $table->string('academic_year'); // e.g., 2024-2025
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->date('admission_date')->nullable(); // date of entry to this class
             $table->enum('status', ['enrolled', 'promoted', 'repeated', 'transferred', 'left'])->default('enrolled');
 
@@ -30,7 +30,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->unique(['student_id', 'academic_year']); // 1 record per year
+            $table->unique(['student_id', 'academic_year_id']); // 1 record per year
         });
     }
 

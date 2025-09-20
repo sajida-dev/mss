@@ -39,6 +39,13 @@ const mainNavItems: NavItem[] = [
 
     },
     {
+        title: 'Manage Academic Years',
+        href: '/admin/academic-years',
+        icon: Building2,
+        permission: 'manage-academic-years',
+
+    },
+    {
         title: 'Manage Classes & Sections',
         href: '/manage/classes-sections',
         icon: School,
@@ -67,7 +74,7 @@ const mainNavItems: NavItem[] = [
 
     },
     {
-        title: 'Admissions',
+        title: 'Manage Admissions',
         href: '/admissions',
         icon: UserPlus,
         permission: 'manage-admissions',
@@ -86,7 +93,7 @@ const mainNavItems: NavItem[] = [
         permission: 'manage-papers',
     },
     {
-        title: 'Attendance Management',
+        title: 'Manage Attendance',
         href: '/attendance',
         icon: CalendarCheck,
         permission: 'manage-attendance',

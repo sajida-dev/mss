@@ -23,6 +23,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->foreign('school_id')->references('id')->on('schools')->onDelete('cascade');
             $table->foreign('section_id')->references('id')->on('sections')->onDelete('set null');

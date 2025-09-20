@@ -15,6 +15,7 @@ return new class extends Migration
             $table->unsignedBigInteger('class_id');
             $table->unsignedBigInteger('section_id')->nullable();
             $table->unsignedBigInteger('school_id');
+            $table->unsignedBigInteger('academic_year_id')->nullable();
             $table->date('date');
 
             $table->enum('status', ['present', 'absent', 'late', 'half_day'])->default('present');
@@ -27,6 +28,7 @@ return new class extends Migration
             $table->softDeletes();
 
             // Foreign keys
+            $table->foreign('academic_year_id')->references('id')->on('academic_years')->onDelete('set null');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->foreign('section_id')->references('id')->on('sections')->onDelete('cascade');

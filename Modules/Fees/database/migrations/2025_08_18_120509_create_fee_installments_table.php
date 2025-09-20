@@ -24,6 +24,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->foreign('fee_id')->references('id')->on('fees')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
         });

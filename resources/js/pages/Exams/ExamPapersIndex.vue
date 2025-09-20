@@ -11,7 +11,8 @@
                 </Button>
             </div>
 
-            <div v-for="group in groupedExamPapers" :key="group.exam.id" class="mb-10">
+            <div v-if="groupedExamPapers.length > 0" v-for="group in groupedExamPapers" :key="group.exam.id"
+                class="mb-10">
                 <h2 class="text-xl font-semibold text-neutral-800 dark:text-neutral-100 mb-4">
                     {{ group.exam.title }}
                 </h2>
@@ -42,6 +43,15 @@
                         </button>
                     </template>
                 </BaseDataTable>
+            </div>
+            <!-- Empty State -->
+            <div v-else class="text-center py-12">
+                <div
+                    class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <Building2 class="w-10 h-10 text-gray-400" />
+                </div>
+                <h3 class="text-xl font-medium text-gray-900 dark:text-gray-100 mb-3">No Exam Papers Found</h3>
+                <p class="text-gray-600 dark:text-gray-400 max-w-md mx-auto">Schedule Subject exam papers here.</p>
             </div>
 
         </div>
@@ -123,6 +133,7 @@ import ManageLayout from './ManageLayout.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
 import TextInput from '@/components/form/TextInput.vue';
 import { computed } from 'vue';
+import { Building2 } from 'lucide-vue-next';
 
 interface SelectOption { id: number; title: string; }
 

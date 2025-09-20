@@ -28,7 +28,6 @@ const props = defineProps({
 });
 
 const countdowns = ref({});
-console.log('props.exams : ', props.exams)
 function updateCountdowns() {
     const now = dayjs();
     props.exams.forEach((exam) => {

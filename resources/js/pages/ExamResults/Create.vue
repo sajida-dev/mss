@@ -151,15 +151,6 @@ function submitForm() {
             });
         },
     });
-
-    // form.post(route('exam-results.store'), {
-    //     onSuccess: () => toast.success('Results saved successfully!'),
-    //     onError: (errors) => {
-    //         Object.values(errors).flat().forEach(message => {
-    //             if (typeof message === 'string') toast.error(message);
-    //         });
-    //     },
-    // });
 }
 watch(() => props.students, (newStudents) => {
     form.results = newStudents.map(student => ({
@@ -209,10 +200,6 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                         Add Exam Paper
                     </Button>
                 </div>
-
-
-
-
 
                 <form @submit.prevent="submitForm" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">

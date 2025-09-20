@@ -14,8 +14,10 @@ return new class extends Migration
             $table->string('type');
             $table->date('issued_at');
             $table->text('details')->nullable();
+            $table->unsignedBigInteger('academic_year_id')->nullable();
             $table->timestamps();
-
+            $table->softDeletes();
+            $table->foreign('academic_year_id')->references('id')->on('academic_years')->onDelete('set null');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->index('student_id');
         });

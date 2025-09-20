@@ -12,6 +12,8 @@ return new class extends Migration {
             $table->foreignId('class_id')->constrained('classes')->onDelete('cascade');
             $table->foreignId('subject_id')->constrained('subjects')->onDelete('cascade');
             $table->foreignId('school_id')->constrained('schools')->onDelete('cascade');
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+
             $table->timestamps();
             $table->softDeletes();
         });

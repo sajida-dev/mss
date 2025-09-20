@@ -6,7 +6,7 @@ import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { ZiggyVue } from 'ziggy-js';
 import { initializeTheme } from './composables/useAppearance';
-import Vue3Toastify, { toast } from 'vue3-toastify'
+import Vue3Toastify from 'vue3-toastify'
 import { createPinia } from 'pinia';
 import Vue3EasyDataTable from 'vue3-easy-data-table';
 import 'vue3-easy-data-table/dist/style.css';

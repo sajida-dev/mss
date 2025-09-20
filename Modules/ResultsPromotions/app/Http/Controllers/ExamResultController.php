@@ -21,15 +21,156 @@ class ExamResultController extends Controller
      * Display a listing of the resource.
      */
 
+    // public function index(Request $request)
+    // {
+    //     $schoolId = session('active_school_id');
+
+    //     // Filters
+    //     $selectedClass = $request->input('class_id');
+    //     $selectedSection = $request->input('section_id');
+    //     $selectedTerm = $request->input('term');
+    //     $selectedAcademicYear = $request->input('academic_year_id');
+    //     $selectedExamId = $request->input('exam_id'); // RENAMED for clarity
+
+    //     // Classes
+    //     $classes = ClassModel::whereHas('schools', fn($q) => $q->where('schools.id', $schoolId))
+    //         ->orderBy('name')
+    //         ->get(['id', 'name']);
+
+    //     // Sections
+    //     $sections = Section::whereIn('id', function ($query) use ($schoolId) {
+    //         $query->select('class_school_sections.section_id')
+    //             ->from('class_school_sections')
+    //             ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
+    //             ->where('class_schools.school_id', $schoolId);
+    //     })->orderBy('name')->get(['id', 'name']);
+
+    //     // Academic Years
+    //     $academicYears = Exam::query()
+    //         ->where('school_id', $schoolId)
+    //         ->when($selectedTerm, function ($q) use ($selectedTerm) {
+    //             $q->whereHas('examType', fn($q2) => $q2->where('code', $selectedTerm));
+    //         })
+    //         ->select('academic_year')
+    //         ->distinct()
+    //         ->orderByDesc('academic_year')
+    //         ->pluck('academic_year')
+    //         ->map(fn($year) => ['id' => $year, 'year' => $year])
+    //         ->values();
+
+
+    //     // Exams List Filtered
+    //     $exams = Exam::where('school_id', $schoolId)
+    //         ->when($selectedClass, fn($q) => $q->where('class_id', $selectedClass))
+    //         ->when($selectedSection, fn($q) => $q->where('section_id', $selectedSection))
+    //         ->when($selectedAcademicYear, fn($q) => $q->where('academic_year', $selectedAcademicYear))
+    //         ->when($selectedTerm, fn($q) => $q->whereHas('examType', fn($q2) => $q2->where('code', $selectedTerm)))
+    //         ->with('examType')
+    //         ->orderBy('start_date', 'desc')
+    //         ->get()
+    //         ->map(fn($exam) => [
+    //             'id' => $exam->id,
+    //             'title' => $exam->title,
+    //             'exam_type' => $exam->examType->name ?? '',
+    //         ]);
+
+    //     $results = collect();
+
+    //     if ($selectedClass) {
+    //         $students = Student::whereHas('class', fn($q) => $q->where('classes.id', $selectedClass))
+    //             ->when($selectedSection, fn($q) => $q->whereHas('section', fn($sq) => $sq->where('sections.id', $selectedSection)))
+    //             ->where('school_id', $schoolId)
+    //             ->admitted()
+    //             ->with([
+    //                 'class',
+    //                 'section',
+    //                 'results.examPaper.exam.examType',
+    //                 'results.examPaper.subject',
+    //                 'results.markedBy'
+    //             ])
+    //             ->orderBy('registration_number')
+    //             ->get();
+
+    //         foreach ($students as $student) {
+    //             $termResults = $student->results->filter(function ($result) use ($selectedExamId, $selectedTerm, $selectedAcademicYear) {
+    //                 $exam = optional($result->examPaper->exam);
+    //                 $examType = optional($exam->examType);
+
+    //                 if ($selectedExamId) {
+    //                     return $exam->id == $selectedExamId;
+    //                 }
+
+    //                 return $examType->code === $selectedTerm && $exam->academic_year == $selectedAcademicYear;
+    //             });
+
+    //             $resultItems = $termResults->map(function ($result) {
+    //                 return [
+    //                     'subject_id'      => $result->examPaper->subject_id,
+    //                     'subject_name'    => optional($result->examPaper->subject)->name,
+    //                     'obtained_marks'  => $result->obtained_marks,
+    //                     'total_marks'     => $result->total_marks,
+    //                     'percentage'      => $result->percentage,
+    //                     'status'          => $result->status,
+    //                     'promotion_status' => $result->promotion_status,
+    //                     'remarks'         => $result->remarks,
+    //                     'marked_by'       => optional($result->markedBy)->name ?? 'N/A',
+    //                 ];
+    //             });
+
+    //             $obtainedTotal = $termResults->sum('obtained_marks');
+    //             $possibleTotal = $termResults->sum('total_marks');
+
+    //             $percentage = $possibleTotal > 0
+    //                 ? round(($obtainedTotal / $possibleTotal) * 100, 2)
+    //                 : 0;
+
+    //             $results->push([
+    //                 'student' => $student,
+    //                 'results' => $resultItems,
+    //                 'total_obtained_marks' => $obtainedTotal,
+    //                 'total_possible_marks' => $possibleTotal,
+    //                 'percentage' => $percentage,
+    //                 'term_has_results' => $termResults->isNotEmpty(),
+    //             ]);
+    //         }
+    //     }
+
+    //     $terms = ExamType::pluck('name', 'code');
+
+    //     return Inertia::render('ExamResults/Index', [
+    //         'classes' => $classes,
+    //         'sections' => $sections,
+    //         'results' => $results,
+    //         'academicYears' => $academicYears,
+    //         'exams' => $exams,
+    //         'terms' => $terms,
+
+    //         // Selected filters
+    //         'selectedClass' => $selectedClass,
+    //         'selectedSection' => $selectedSection,
+    //         'selectedTerm' => $selectedTerm,
+    //         'selectedAcademicYear' => $selectedAcademicYear,
+    //         'selectedExam' => $selectedExamId,
+    //     ]);
+    // }
+
     public function index(Request $request)
     {
         $schoolId = session('active_school_id');
 
-        // Fetch dropdown data
+        // Filters
+        $selectedClass = $request->input('class_id');
+        $selectedSection = $request->input('section_id');
+        $selectedTerm = $request->input('term');
+        $selectedAcademicYear = $request->input('academic_year_id');
+        $selectedExamId = $request->input('exam_id');
+
+        // Classes
         $classes = ClassModel::whereHas('schools', fn($q) => $q->where('schools.id', $schoolId))
             ->orderBy('name')
             ->get(['id', 'name']);
 
+        // Sections
         $sections = Section::whereIn('id', function ($query) use ($schoolId) {
             $query->select('class_school_sections.section_id')
                 ->from('class_school_sections')
@@ -37,79 +178,105 @@ class ExamResultController extends Controller
                 ->where('class_schools.school_id', $schoolId);
         })->orderBy('name')->get(['id', 'name']);
 
-        // Filters from request
-        $selectedClass = $request->input('class_id');
-        $selectedSection = $request->input('section_id');
-        $selectedTerm = $request->input('term', '1st_term');
+        // Academic Years
+        $academicYears = Exam::query()
+            ->where('school_id', $schoolId)
+            ->when($selectedTerm, function ($q) use ($selectedTerm) {
+                $q->whereHas('examType', fn($q2) => $q2->where('code', $selectedTerm));
+            })
+            ->select('academic_year')
+            ->distinct()
+            ->orderByDesc('academic_year')
+            ->pluck('academic_year')
+            ->map(fn($year) => ['id' => $year, 'year' => $year])
+            ->values();
 
-        // Prepare results
+        // Exams List Filtered
+        $exams = Exam::where('school_id', $schoolId)
+            ->when($selectedClass, fn($q) => $q->where('class_id', $selectedClass))
+            ->when($selectedSection, fn($q) => $q->where('section_id', $selectedSection))
+            ->when($selectedAcademicYear, fn($q) => $q->where('academic_year', $selectedAcademicYear))
+            ->when($selectedTerm, fn($q) => $q->whereHas('examType', fn($q2) => $q2->where('code', $selectedTerm)))
+            ->with('examType')
+            ->orderBy('start_date', 'desc')
+            ->get()
+            ->map(fn($exam) => [
+                'id' => $exam->id,
+                'title' => $exam->title,
+                'exam_type' => $exam->examType->name ?? '',
+            ]);
+
         $results = collect();
 
         if ($selectedClass) {
             $students = Student::whereHas('class', fn($q) => $q->where('classes.id', $selectedClass))
                 ->when($selectedSection, fn($q) => $q->whereHas('section', fn($sq) => $sq->where('sections.id', $selectedSection)))
                 ->where('school_id', $schoolId)
-                ->admitted()  // assuming this scope filters admitted students
+                ->admitted()
                 ->with([
                     'class',
                     'section',
-                    'results.examPaper.exam.examType',  // you have this
-                    'results.examPaper.subject',         // ensure subject is loaded so you can show subject
-                    'results.markedBy'                   // load the user who marked the result
+                    'results.examPaper.exam.examType',
+                    'results.examPaper.subject',
+                    'results.markedBy'
                 ])
                 ->orderBy('registration_number')
                 ->get();
 
             foreach ($students as $student) {
-                // Filter student's results by term
-                $termResults = $student->results->filter(function ($result) use ($selectedTerm) {
-                    return optional($result->examPaper->exam->examType)->code === $selectedTerm;
+                $termResults = $student->results->filter(function ($result) use ($selectedExamId, $selectedTerm, $selectedAcademicYear) {
+                    $exam = optional($result->examPaper->exam);
+                    $examType = optional($exam->examType);
+
+                    if ($selectedExamId) {
+                        return $exam->id == $selectedExamId;
+                    }
+
+                    return $examType->code === $selectedTerm && $exam->academic_year == $selectedAcademicYear;
                 });
 
-                // Build result items for each result
                 $resultItems = $termResults->map(function ($result) {
                     return [
-                        'subject_id'      => $result->examPaper->subject_id,
-                        'subject_name'    => optional($result->examPaper->subject)->name,
-                        'obtained_marks'  => $result->obtained_marks,
-                        'total_marks'     => $result->total_marks,
-                        'percentage' => $result->percentage,
-                        'status' => $result->status,
+                        'subject_id'       => $result->examPaper->subject_id,
+                        'subject_name'     => optional($result->examPaper->subject)->name,
+                        'obtained_marks'   => $result->obtained_marks,
+                        'total_marks'      => $result->total_marks,
+                        'percentage'       => $result->percentage,
+                        'status'           => $result->status,
                         'promotion_status' => $result->promotion_status,
-                        'remarks' => $result->remarks,
-                        'marked_by' => $result->markedBy ? $result->markedBy->name : 'NAN',
-                        // you can add more fields if needed (date, etc.)
+                        'remarks'          => $result->remarks,
+                        'marked_by'        => optional($result->markedBy)->name ?? 'N/A',
                     ];
                 });
 
-                $obtainedTotal = $termResults->sum('obtained_marks');
-                $possibleTotal = $termResults->sum('total_marks');
+                $resultData = [
+                    'student' => $student,
+                    'results' => $resultItems,
+                    'term_has_results' => $termResults->isNotEmpty(),
+                ];
 
-                $percentage = $possibleTotal > 0
-                    ? round(($obtainedTotal / $possibleTotal) * 100, 2)
-                    : 0;
 
-                $results->push([
-                    'student'                => $student,
-                    'results'                => $resultItems,
-                    'total_obtained_marks'   => $obtainedTotal,
-                    'total_possible_marks'   => $possibleTotal,
-                    'percentage'             => $percentage,
-                    'term_has_results'       => $termResults->isNotEmpty(),  // whether any results exist for that term
-                ]);
+
+                $results->push($resultData);
             }
         }
 
         $terms = ExamType::pluck('name', 'code');
 
         return Inertia::render('ExamResults/Index', [
-            'classes'          => $classes,
-            'sections'         => $sections,
-            'results'          => $results,
-            'selectedClass'    => $selectedClass,
-            'selectedSection'  => $selectedSection,
-            'selectedTerm'     => $selectedTerm,
-            'terms'            => $terms,
+            'classes' => $classes,
+            'sections' => $sections,
+            'results' => $results,
+            'academicYears' => $academicYears,
+            'exams' => $exams,
+            'terms' => $terms,
+
+            // Selected filters
+            'selectedClass' => $selectedClass,
+            'selectedSection' => $selectedSection,
+            'selectedTerm' => $selectedTerm,
+            'selectedAcademicYear' => $selectedAcademicYear,
+            'selectedExam' => $selectedExamId,
         ]);
     }
 

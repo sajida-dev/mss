@@ -13,6 +13,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('exam_paper_id');
             $table->unsignedBigInteger('student_id');
+            $table->unsignedBigInteger('academic_year_id');
             $table->decimal('obtained_marks', 8, 2);
             $table->decimal('total_marks', 8, 2);
             $table->decimal('percentage', 5, 2)->nullable();
@@ -23,6 +24,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->foreign('academic_year_id')->references('id')->on('academic_years')->onDelete('cascade');
             $table->foreign('exam_paper_id')->references('id')->on('exam_paper')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->unique(['exam_paper_id', 'student_id']); // one result per student per exam paper

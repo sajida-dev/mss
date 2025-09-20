@@ -14,6 +14,8 @@ return new class extends Migration
             $table->unsignedBigInteger('exam_id');
             $table->unsignedBigInteger('paper_id');
             $table->unsignedBigInteger('subject_id');
+            $table->unsignedBigInteger('academic_year_id');
+
             $table->date('exam_date'); // specific date for this subject
             $table->time('start_time')->nullable();
             $table->time('end_time')->nullable();
@@ -22,6 +24,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
+            $table->foreign('academic_year_id')->references('id')->on('academic_years')->onDelete('cascade');
             $table->foreign('exam_id')->references('id')->on('exams')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('paper_id')->references('id')->on('papers')->onDelete('restrict')->onUpdate('cascade');
             $table->foreign('subject_id')->references('id')->on('subjects')->onDelete('restrict')->onUpdate('cascade');

@@ -13,7 +13,6 @@ return new class extends Migration
             $table->unsignedBigInteger('student_id');
             $table->unsignedBigInteger('exam_id'); // References the term exam
             $table->foreignId('exam_type_id')->constrained('exam_types');
-            $table->string('academic_year');
             $table->integer('total_subjects');
             $table->decimal('total_marks_obtained', 10, 2);
             $table->decimal('total_maximum_marks', 10, 2);
@@ -29,12 +28,12 @@ return new class extends Migration
             $table->timestamp('verified_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreign('exam_id')->references('id')->on('exams')->onDelete('cascade');
             $table->foreign('verified_by')->references('id')->on('users')->onDelete('set null');
             $table->unique(['student_id', 'exam_id']); // One term result per student per exam
-            $table->index(['student_id', 'academic_year', 'exam_type_id']);
+            $table->index(['student_id', 'academic_year_id', 'exam_type_id']);
         });
     }
 
