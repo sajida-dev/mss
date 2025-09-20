@@ -10,7 +10,6 @@ use Illuminate\Support\Facades\Redirect;
 use Maatwebsite\Excel\Facades\Excel;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Modules\Schools\App\Events\SchoolCreated;
-use Modules\Schools\App\Imports\SchoolsImport;
 use Illuminate\Support\Facades\Auth;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\ClassesSections\app\Models\Section;
@@ -18,6 +17,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 use Modules\Schools\App\Http\Requests\StoreSchoolRequest;
 use Modules\Schools\App\Http\Requests\UpdateSchoolRequest;
+use Modules\Schools\Imports\SchoolsImport;
 
 class SchoolsController extends Controller
 {
@@ -141,9 +141,10 @@ class SchoolsController extends Controller
      */
     public function update(UpdateSchoolRequest $request, $id)
     {
+        $validated = $request->validated();
         try {
-            return DB::transaction(function () use ($request, $id) {
-                $validated = $request->validated();
+            return DB::transaction(function () use ($request, $id, $validated) {
+
                 $school = School::findOrFail($id);
                 $school->update($validated);
 

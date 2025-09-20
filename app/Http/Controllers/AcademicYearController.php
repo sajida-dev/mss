@@ -9,41 +9,23 @@ use Inertia\Response;
 
 class AcademicYearController extends Controller
 {
-    public function index(Request $request): Response
+    public function index(Request $request)
     {
-        // Read server options from query params
-        $perPage = $request->get('rowsPerPage', 10);
-        $page = $request->get('page', 1);
-        $sortBy = $request->get('sortBy', 'start_date');
-        $sortType = $request->get('sortType', 'desc');
-        $search = $request->get('search', '');
+        $academicYears = AcademicYear::query()->paginate(10);
 
-        $query = AcademicYear::query();
-
-        // Search by name maybe
-        if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
-        }
-
-        // Sorting
-        if ($sortBy) {
-            $query->orderBy($sortBy, $sortType);
-        } else {
-            $query->orderBy('start_date', 'desc');
-        }
-
-        $academicYears = $query->paginate($perPage)->appends([
-            'rowsPerPage' => $perPage,
-            'page' => $page,
-            'sortBy' => $sortBy,
-            'sortType' => $sortType,
-            'search' => $search,
-        ]);
-
-        return Inertia::render('AcademicYears/Index', [
-            'academicYears' => $academicYears,
+        return inertia('AcademicYears/Index', [
+            'academicYears' => [
+                'data' => $academicYears->items(),
+                'meta' => [
+                    'current_page' => $academicYears->currentPage(),
+                    'last_page' => $academicYears->lastPage(),
+                    'per_page' => $academicYears->perPage(),
+                    'total' => $academicYears->total(),
+                ],
+            ],
         ]);
     }
+
 
     public function create(): Response
     {
@@ -59,7 +41,7 @@ class AcademicYearController extends Controller
                 'regex:/^\d{4}-\d{4}$/',
                 function ($attribute, $value, $fail) {
                     [$start, $end] = explode('-', $value);
-                    if ((int)$end > (int)$start) {
+                    if ((int)$end < (int)$start) {
                         $fail('The academic year must be in the format YYYY-YYYY where the second year is greater than the first.');
                     }
                 },
@@ -93,7 +75,7 @@ class AcademicYearController extends Controller
                 'regex:/^\d{4}-\d{4}$/',
                 function ($attribute, $value, $fail) {
                     [$start, $end] = explode('-', $value);
-                    if ((int)$end > (int)$start) {
+                    if ((int)$end < (int)$start) {
                         $fail('The academic year must be in the format YYYY-YYYY where the second year is greater than the first.');
                     }
                 },

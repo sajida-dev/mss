@@ -103,6 +103,7 @@ const props = defineProps<{ academicYears: PaginationResponse }>();
 
 // Reactive states
 const academicYears = ref<PaginationResponse>({ ...props.academicYears });
+console.log('academicYears', academicYears.value);
 const loading = ref(false);
 const modalOpen = ref(false);
 const isEdit = ref(false);
@@ -123,6 +124,7 @@ const serverOptions = ref({
 
 // Table headers
 const headers = [
+    { text: '#', value: 'id' },
     { text: 'Name', value: 'name' },
     { text: 'Start Date', value: 'start_date' },
     { text: 'End Date', value: 'end_date' },
@@ -220,7 +222,7 @@ function confirmDelete() {
 
     loading.value = true;
 
-    router.delete(`/academic-years/${itemToDelete.value.id}`, {
+    router.delete(`/admin/academic-years/${itemToDelete.value.id}`, {
         onSuccess: () => {
             toast.success('Academic Year deleted!');
             showDeleteDialog.value = false;

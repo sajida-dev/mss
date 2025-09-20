@@ -89,9 +89,10 @@ class AdmissionsController extends Controller
      */
     public function store(StoreStudentRequest $request)
     {
+        $validated = $request->validated();
         try {
             return DB::transaction(function () use ($request) {
-                $validated = $request->validated();
+
                 $schoolId = session('active_school_id');
                 // Handle file upload
                 if ($request->hasFile('profile_photo_path')) {

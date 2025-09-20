@@ -36,7 +36,7 @@
                         @click="viewSchool(row.id)" aria-label="View School" title="View School">
                         <Eye class="w-5 h-5" />
                     </button>
-                    <button v-can="'edit-schools'"
+                    <button v-can="'update-schools'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="editSchool(row.id)" aria-label="Edit School" title="Edit School">
                         <Icon name="edit" class="w-5 h-5" />
