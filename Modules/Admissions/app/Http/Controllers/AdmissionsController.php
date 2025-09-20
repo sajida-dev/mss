@@ -7,16 +7,12 @@ use Illuminate\Http\Request;
 use Modules\Admissions\App\Models\Student;
 use Modules\Schools\App\Models\School;
 use Modules\ClassesSections\App\Models\ClassModel;
-use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Broadcast;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\Redirect;
 use Modules\Fees\App\Models\Fee;
 use Modules\Fees\App\Models\FeeItem;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Log;
 use Modules\Admissions\App\Http\Requests\StoreStudentRequest;
 use Modules\Admissions\App\Http\Requests\UpdateStudentRequest;
@@ -32,6 +28,8 @@ class AdmissionsController extends Controller
      */
     public function index(Request $request)
     {
+        $schools = School::active()->get('id', 'name')->toArray();
+        dd($schools);
         $query = Student::with(['class', 'fee']); // Eager load class and fee relationships
         // Always filter by selected school from session
         $selectedSchoolId = session('active_school_id');
@@ -91,7 +89,7 @@ class AdmissionsController extends Controller
     {
         $validated = $request->validated();
         try {
-            return DB::transaction(function () use ($request) {
+            return DB::transaction(function () use ($request, $validated) {
 
                 $schoolId = session('active_school_id');
                 // Handle file upload
@@ -105,7 +103,10 @@ class AdmissionsController extends Controller
                 $student = Student::create($validated);
 
 
+                $admissionFee = $request->input('admission_fee');
+                $dueDate = $request->input('due_date');
 
+                $voucher_number = 'VCH' . strtoupper(uniqid());
 
                 // Create fee for admission (with error handling)
                 try {
@@ -113,15 +114,16 @@ class AdmissionsController extends Controller
                         'student_id' => $student->id,
                         'class_id' => $student->class_id,
                         'type' => 'admission',
-                        'amount' => 500,
+                        'amount' => $admissionFee ?? 500,
                         'status' => 'unpaid',
-                        'due_date' => now()->addDays(7),
+                        'due_date' => $dueDate ?? now()->addDays(7),
+                        'voucher_number' => $voucher_number,
                     ]);
 
                     FeeItem::create([
                         'fee_id' => $fee->id,
                         'type' => 'admission',
-                        'amount' => 500,
+                        'amount' => $admissionFee ?? 500,
                     ]);
                 } catch (\Exception $feeException) {
                     // Log the fee creation error but don't fail the student creation
@@ -132,14 +134,14 @@ class AdmissionsController extends Controller
                 }
 
                 // Try to broadcast event (with error handling)
-                try {
-                    Broadcast::event('student.created', $student);
-                } catch (\Exception $broadcastException) {
-                    Log::error('Failed to broadcast student.created event', [
-                        'error' => $broadcastException->getMessage(),
-                        'student_id' => $student->id
-                    ]);
-                }
+                // try {
+                //     Broadcast::event('student.created', $student);
+                // } catch (\Exception $broadcastException) {
+                //     Log::error('Failed to broadcast student.created event', [
+                //         'error' => $broadcastException->getMessage(),
+                //         'student_id' => $student->id
+                //     ]);
+                // }
 
                 return redirect()->route('admissions.index')->with('success', 'Student admitted successfully.');
             }, 5); // 5 retries for deadlock handling
@@ -170,7 +172,7 @@ class AdmissionsController extends Controller
      */
     public function edit($id)
     {
-        $student = Student::findOrFail($id);
+        $student = Student::with('fee')->findOrFail($id);
         $schools = School::all();
         $classes = ClassModel::all();
         return Inertia::render('admissions/Edit', [
@@ -191,19 +193,34 @@ class AdmissionsController extends Controller
                 $validated = $request->validated();
 
                 // Handle file upload
-                if ($request->hasFile('profile_photo_path')) {
-                    // Remove old image if it exists
+                if ($request->hasFile('profile_photo_path')) { // Remove old image if it exists
+
                     if ($student->profile_photo_path && Storage::disk('public')->exists($student->profile_photo_path)) {
                         Storage::disk('public')->delete($student->profile_photo_path);
                     }
                     $path = $request->file('profile_photo_path')->store('profile-photos', 'public');
                     $validated['profile_photo_path'] = $path;
-                } else {
-                    // If not uploading a new file, keep the old path
+                } else { // If not uploading a new file, keep the old path
+
                     $validated['profile_photo_path'] = $student->profile_photo_path;
                 }
 
-                $student->update($validated);
+                $student->update($validated)->execpt(['admission_fee', 'due_date']);
+
+
+                // Update fee
+                $fee = $student->fee;
+                $fee->amount = $request->input('admission_fee');
+                $fee->due_date = $request->input('due_date');
+                $fee->save();
+
+                FeeItem::where('fee_id', $fee->id)->delete();
+                FeeItem::create([
+                    'fee_id' => $fee->id,
+                    'type' => 'admission',
+                    'amount' => $fee->amount,
+                ]);
+
                 // Broadcast::event('student.updated', $student);
                 return redirect()->route('admissions.index')->with('success', 'Student updated successfully.');
             }, 5); // 5 retries for deadlock handling
@@ -216,7 +233,7 @@ class AdmissionsController extends Controller
             ]);
 
             return redirect()->back()
-                ->withErrors(['error' => 'Failed to update student. Please try again.'])
+                ->withErrors(['error' => 'Failed to update student. Please try again.' . $e->getMessage()])
                 ->withInput();
         }
     }
@@ -230,7 +247,7 @@ class AdmissionsController extends Controller
             return DB::transaction(function () use ($id) {
                 $student = Student::findOrFail($id);
                 $student->delete();
-                Broadcast::event('student.deleted', ['id' => $id]);
+                // Broadcast::event('student.deleted', ['id' => $id]);
                 return redirect()->route('admissions.index')->with('success', 'Student deleted successfully.');
             }, 5); // 5 retries for deadlock handling
         } catch (\Exception $e) {
@@ -238,7 +255,7 @@ class AdmissionsController extends Controller
                 'error' => $e->getMessage(),
                 'student_id' => $id
             ]);
-            return redirect()->back()->withErrors(['error' => 'Failed to delete student. Please try again.']);
+            return redirect()->back()->withErrors(['error' => 'Failed to delete student. Please try again.' . $e->getMessage()]);
         }
     }
 
@@ -291,8 +308,6 @@ class AdmissionsController extends Controller
                 $student->status = 'admitted';
                 $student->save();
 
-                // Get academic year from form or generate
-                $academicYear = $request->input('academic_year') ?? now()->year . '-' . now()->addYear()->year;
                 $school_id = session('active_school_id');
                 if ($school_id == null) {
                     $school_id = Auth::user()->last_school_id;
@@ -304,7 +319,6 @@ class AdmissionsController extends Controller
                     'school_id' => $school_id,
                     'class_id' => $student->class_id,
                     'section_id' => $student->section_id ?? null,
-                    'academic_year' => $academicYear,
                     'admission_date' => now(),
                     'status' => 'enrolled',
                     'is_current' => true,
@@ -318,16 +332,16 @@ class AdmissionsController extends Controller
                 ]);
 
                 // Try to broadcast event (with error handling)
-                try {
-                    Broadcast::event('student.updated', $student);
-                } catch (\Exception $broadcastException) {
-                    Log::warning('Failed to broadcast student update event', [
-                        'error' => $broadcastException->getMessage(),
-                        'student_id' => $student->id
-                    ]);
-                }
+                // try {
+                //     Broadcast::event('student.updated', $student);
+                // } catch (\Exception $broadcastException) {
+                //     Log::warning('Failed to broadcast student update event', [
+                //         'error' => $broadcastException->getMessage(),
+                //         'student_id' => $student->id
+                //     ]);
+                // }
 
-                return redirect()->back()->with('success', 'Student approved successfully.');
+                return redirect()->route('students.index')->with('success', 'Student approved successfully.');
             }, 5); // 5 retries for deadlock handling
         } catch (\Exception $e) {
             Log::error('Failed to approve student', [
@@ -335,7 +349,7 @@ class AdmissionsController extends Controller
                 'student_id' => $id
             ]);
             $msg = 'Failed to approve student' . $e->getMessage();
-            return redirect()->back()->withErrors(['error' => $msg]);
+            return redirect()->route('students.index')->withErrors(['error' => $msg]);
         }
     }
 

@@ -17,7 +17,7 @@
     </AppLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { useForm } from '@inertiajs/vue3';
 import { router } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
@@ -29,6 +29,7 @@ import { storeToRefs } from 'pinia';
 import { Head } from '@inertiajs/vue3';
 import { computed, watch, onMounted } from 'vue';
 import { route } from 'ziggy-js';
+import { BreadcrumbItem } from '@/types';
 
 const schoolStore = useSchoolStore();
 const { schools: schoolsRaw, classes: classesRaw } = storeToRefs(schoolStore);
@@ -43,14 +44,14 @@ onMounted(() => {
     }
 });
 
-const breadcrumbs = [
+const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Admissions', href: '/admissions' },
-    { title: 'Add Student' }
+    { title: 'Add Student', href: '/admissions/create' }
 ];
 
 const form = useForm({
-    school_id: null,
-    class_id: null,
+    school_id: null as number | null,
+    class_id: null as number | null,
     nationality: '',
     registration_number: '',
     name: '',
@@ -83,6 +84,8 @@ const form = useForm({
     permanent_address: '',
     phone_no: '',
     mobile_no: '',
+    admission_fee: null,
+    due_date: null,
 });
 
 // Watch for changes in form.school_id and update the selected school in the store
@@ -111,18 +114,43 @@ watch(
     { immediate: true }
 );
 
+const validateForm = () => {
+    const validationErrors: Record<string, string> = {}
+
+    if (form.inclusive === 'others' && !form.other_inclusive_type) {
+        validationErrors.other_inclusive_type = 'Other Inclusive Type is required when Inclusive is "others".'
+    }
+
+    return validationErrors
+}
+
 function submit() {
+
+    const validationErrors = validateForm()
+
+    if (Object.keys(validationErrors).length > 0) {
+        Object.assign(form.errors, validationErrors)
+        return
+    }
+
     form.post(route('admissions.store'), {
         forceFormData: true,
         onSuccess: () => {
             toast.success('Student added successfully!');
             router.visit(route('admissions.index'));
         },
-        onError: () => {
-            toast.error('Please fix the errors in the form.');
+        onError: (e) => {
+            console.log('error: ', e)
+            toast.error('Please fix the errors in the form.' + e);
         },
     });
 }
+watch(() => form.inclusive, (newValue) => {
+    if (newValue !== 'others') {
+        form.other_inclusive_type = ''
+        form.errors.other_inclusive_type = ''
+    }
+})
 
 function goBack() {
     router.visit(route('admissions.index'));

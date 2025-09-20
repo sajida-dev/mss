@@ -2,12 +2,14 @@
 
 namespace Modules\Teachers\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ClassSubjectTeacher extends Model
 {
+    use BelongsToAcademicYear, SoftDeletes;
     protected $table = 'class_subject_teacher';
     protected $fillable = [
         'teacher_id',

@@ -60,6 +60,13 @@ const mainNavItems: NavItem[] = [
 
     },
     {
+        title: 'Manage Admissions',
+        href: '/admissions',
+        icon: UserPlus,
+        permission: 'manage-admissions',
+
+    },
+    {
         title: 'Manage Teachers',
         href: '/teachers',
         icon: Users,
@@ -73,13 +80,7 @@ const mainNavItems: NavItem[] = [
         permission: 'manage-students',
 
     },
-    {
-        title: 'Manage Admissions',
-        href: '/admissions',
-        icon: UserPlus,
-        permission: 'manage-admissions',
 
-    },
     {
         title: 'Manage Fees',
         href: '/fees',

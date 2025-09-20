@@ -35,29 +35,46 @@ class AcademicYearController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => [
-                'required',
-                'unique:academic_years,name',
-                'regex:/^\d{4}-\d{4}$/',
-                function ($attribute, $value, $fail) {
-                    [$start, $end] = explode('-', $value);
-                    if ((int)$end < (int)$start) {
-                        $fail('The academic year must be in the format YYYY-YYYY where the second year is greater than the first.');
-                    }
-                },
-            ],
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after:start_date',
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after:start_date'],
         ]);
 
+        // Extract years from dates
+        $startYear = date('Y', strtotime($validated['start_date']));
+        $endYear = date('Y', strtotime($validated['end_date']));
+
+        // Validate year range
+        if ((int)$endYear <= (int)$startYear) {
+            return redirect()->back()
+                ->withErrors(['start_date' => 'End year must be greater than start year.'])
+                ->withInput();
+        }
+
+        // Generate academic year name
+        $name = "$startYear-$endYear";
+
+        // Check uniqueness
+        if (AcademicYear::where('name', $name)->exists()) {
+            return redirect()->back()
+                ->withErrors(['name' => 'An academic year with this range already exists.'])
+                ->withInput();
+        }
+
+        // Close any existing active academic years
         AcademicYear::where('status', 'active')->update(['status' => 'closed']);
 
-
-        AcademicYear::create($validated);
+        // Create the academic year
+        AcademicYear::create([
+            'name' => $name,
+            'start_date' => $validated['start_date'],
+            'end_date' => $validated['end_date'],
+            'status' => 'active',
+        ]);
 
         return redirect()->route('admin.academic-years.index')
             ->with('success', 'Academic Year created successfully.');
     }
+
 
     public function edit(AcademicYear $academicYear): Response
     {

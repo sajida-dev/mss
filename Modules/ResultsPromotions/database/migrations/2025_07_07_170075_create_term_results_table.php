@@ -14,8 +14,8 @@ return new class extends Migration
             $table->unsignedBigInteger('exam_id'); // References the term exam
             $table->foreignId('exam_type_id')->constrained('exam_types');
             $table->integer('total_subjects');
-            $table->decimal('total_marks_obtained', 10, 2);
-            $table->decimal('total_maximum_marks', 10, 2);
+            $table->decimal('obtained_marks', 10, 2);
+            $table->decimal('total_marks', 10, 2);
             $table->decimal('overall_percentage', 5, 2);
             $table->integer('subjects_passed');
             $table->integer('subjects_failed');

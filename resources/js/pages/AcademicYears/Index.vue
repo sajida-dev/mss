@@ -31,8 +31,6 @@
                 </DialogHeader>
                 <form @submit.prevent="handleSubmit" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <TextInput id="name" v-model="form.name" label="Academic Year Name (e.g. 2025-2026)" required
-                            :error="form.errors.name" class="col-span-2" />
                         <TextInput id="start_date" v-model="form.start_date" label="Start Date" type="date" required
                             :error="form.errors.start_date" />
                         <TextInput id="end_date" v-model="form.end_date" label="End Date" type="date" required
@@ -135,7 +133,6 @@ const headers = [
 // Form
 const form = useForm({
     id: null as number | null,
-    name: '',
     start_date: '',
     end_date: '',
     status: 'active',
@@ -164,7 +161,6 @@ function openEditModal(item: AcademicYear) {
     editingItem.value = item;
 
     form.id = item.id;
-    form.name = item.name;
     form.start_date = item.start_date;
     form.end_date = item.end_date;
     form.status = item.status;

@@ -67,6 +67,8 @@ class School extends Model
 
     public function classes()
     {
-        return $this->belongsToMany(ClassModel::class, "class_schools", "school_id", "class_id");
+        return $this->belongsToMany(ClassModel::class, 'class_schools', 'school_id', 'class_id')
+            ->withPivot('academic_year_id')
+            ->withTimestamps();
     }
 }

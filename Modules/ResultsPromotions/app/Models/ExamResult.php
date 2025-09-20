@@ -3,6 +3,7 @@
 namespace Modules\ResultsPromotions\app\Models;
 
 use App\Models\User;
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admissions\App\Models\Student;
@@ -12,7 +13,7 @@ use Modules\ResultsPromotions\Models\ExamPaper;
 class ExamResult extends Model
 {
     protected $guarded = [];
-    use SoftDeletes;
+    use SoftDeletes, BelongsToAcademicYear;
 
     protected $fillable = [
         'exam_paper_id',

@@ -178,7 +178,7 @@
                 </div>
 
                 <!-- Save Button -->
-                <div class="p-6 border-t border-gray-200 dark:border-neutral-700">
+                <div class="p-6 border-t border-gray-200 dark:border-neutral-700 flex justify-end">
                     <Button @click="saveAttendance" :disabled="load" class="w-full sm:w-auto px-4 py-2 text-sm">
                         <Loader2 v-if="load" class="w-4 h-4 mr-2 animate-spin" />
                         <Save v-else class="w-4 h-4 mr-2" />

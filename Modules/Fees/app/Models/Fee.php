@@ -2,6 +2,7 @@
 
 namespace Modules\Fees\App\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -9,11 +10,11 @@ use Modules\Fees\App\Models\FeeItem;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admissions\App\Models\Student;
 use Modules\ClassesSections\App\Models\ClassModel;
-use Modules\Fees\App\Models\FeeInstallment;
+use Modules\Fees\Models\FeeInstallment;
 
 class Fee extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToAcademicYear;
     protected $dates = ['deleted_at'];
     protected $fillable = [
         'student_id',

@@ -126,6 +126,11 @@
                 <TextInput id="mobile_no" v-model="form.mobile_no" label="Mobile No" required :error="errors.mobile_no"
                     placeholder="e.g. 03001234567 or +923001234567" pattern="^(03\d{9}|\+92\d{10})$"
                     title="Must follow the format: 03001234567 or +923001234567" />
+                <TextInput id="admission_fee" v-model="form.admission_fee" label="Admission Fee (Rs.)"
+                    :error="errors.admission_fee" placeholder="Enter admission fee (e.g. 500)" pattern="[0-9]+"
+                    title="Must be a number" />
+                <TextInput id="due_date" v-model="form.due_date" label="Due Date" type="date" :error="errors.due_date"
+                    placeholder="Select due date" />
             </div>
         </div>
         <div class="mt-6 flex justify-end items-center gap-2">

@@ -9,7 +9,6 @@ import { router } from '@inertiajs/vue3';
 
 const schoolStore = useSchoolStore();
 const { schools, selectedSchool } = storeToRefs(schoolStore);
-
 defineProps<{ isSuperAdmin: boolean }>();
 
 const emit = defineEmits(['switched']);
@@ -90,7 +89,7 @@ onUnmounted(() => {
                             {{ selectedSchool?.name || (schools.length === 0 ? 'No school' : '') }}
                         </span>
                         <span class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                            {{ selectedSchool?.phone || '' }}
+                            Contact: {{ selectedSchool?.contact || '' }}
                         </span>
                     </div>
                     <ChevronDown class="ml-auto text-gray-400 dark:text-gray-500" />

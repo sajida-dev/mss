@@ -20,10 +20,11 @@ return new class extends Migration
             $table->integer('total_marks')->default(0);
             $table->integer('time_duration')->default(120); // in minutes
             $table->text('instructions')->nullable();
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade');
             $table->foreign('school_id')->references('id')->on('schools')->onDelete('cascade');
             $table->foreign('section_id')->references('id')->on('sections')->onDelete('set null');

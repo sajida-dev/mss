@@ -9,7 +9,7 @@ import CollapsibleContent from '@/components/ui/collapsible/CollapsibleContent.v
 import Checkbox from '@/components/ui/checkbox/Checkbox.vue'
 import Switch from '@/components/ui/switch/Switch.vue'
 import { toast } from 'vue3-toastify'
-import { Trash2, Plus } from 'lucide-vue-next'
+import { Trash2, Plus, Loader, Check } from 'lucide-vue-next'
 import Dialog from '@/components/ui/dialog/Dialog.vue'
 import DialogContent from '@/components/ui/dialog/DialogContent.vue'
 import DialogTitle from '@/components/ui/dialog/DialogTitle.vue'
@@ -113,59 +113,128 @@ const getPermissionForm = (role: Role) => {
     return permissionForms.value[role.id]
 }
 
-const togglePermission = async (role: Role, perm: Permission) => {
+// const togglePermission = async (role: Role, perm: Permission) => {
 
+//     const key = `${role.id}-${perm.id}`
+//     updating.value[key] = true
+//     errorMsg.value = ''
+
+//     const form = getPermissionForm(role)
+//     const hasPerm = hasPermission(role, perm.id)
+//     if (hasPerm) {
+//         form.permissions = form.permissions.filter((id: number) => id !== perm.id)
+//     } else {
+//         form.permissions = [...form.permissions, perm.id]
+//     }
+
+//     // Always send an array of permission IDs
+//     const payload = {
+//         permissions: form.permissions
+//     };
+
+//     form.put(`/admin/roles/${role.id}`, {
+//         preserveScroll: true,
+//         only: ['permissions'], // Only send permissions field
+//         onSuccess: (response: any) => {
+//             // Update the role in the local roles array
+//             if (response && response.props && response.props.role) {
+//                 const updatedRole = response.props.role
+//                 const idx = roles.value.findIndex(r => r.id === role.id)
+//                 if (idx !== -1) {
+//                     roles.value[idx].permissions = updatedRole.permissions
+//                     // Sync the cached form's permissions to backend
+//                     if (permissionForms.value[role.id]) {
+//                         permissionForms.value[role.id].permissions = updatedRole.permissions.map((p: any) => p.id)
+//                     }
+//                 }
+//             } else {
+//                 // fallback: update from form
+//                 const idx = roles.value.findIndex(r => r.id === role.id)
+//                 if (idx !== -1) {
+//                     roles.value[idx].permissions = permissions.value.filter(p => form.permissions.includes(p.id))
+//                 }
+//             }
+//             if (!hasPerm) {
+//                 toast.success(`'${capitalize(perm.name)}' assigned to '${capitalize(role.name)}'`)
+//             } else {
+//                 toast.info(`'${capitalize(perm.name)}' removed from '${capitalize(role.name)}'`)
+//             }
+//             updating.value[key] = false
+//             updated.value[key] = true
+//             setTimeout(() => { updated.value[key] = false }, 1200)
+//             router.visit(route('roles.settings'), {
+//                 preserveState: true,
+//                 preserveScroll: true,
+//             })
+//         },
+//         onError: (errors: any) => {
+//             updating.value[key] = false
+//             errorMsg.value = errors?.permissions?.[0] || 'Failed to update permissions. Please refresh and try again.'
+//             toast.error(errorMsg.value)
+//         }
+//     })
+// }
+
+const togglePermission = async (role: Role, perm: Permission) => {
     const key = `${role.id}-${perm.id}`
+
+    // Start updating for this key
     updating.value[key] = true
     errorMsg.value = ''
 
     const form = getPermissionForm(role)
     const hasPerm = hasPermission(role, perm.id)
+
     if (hasPerm) {
         form.permissions = form.permissions.filter((id: number) => id !== perm.id)
     } else {
         form.permissions = [...form.permissions, perm.id]
     }
 
-    // Always send an array of permission IDs
-    const payload = {
-        permissions: form.permissions
-    };
+    const payload = { permissions: form.permissions }
 
     form.put(`/admin/roles/${role.id}`, {
         preserveScroll: true,
-        only: ['permissions'], // Only send permissions field
+        only: ['permissions'],
         onSuccess: (response: any) => {
-            // Update the role in the local roles array
+            // Clear loading state for this key
+            updating.value[key] = false
+
+            // Show updated success for this key
+            updated.value[key] = true
+            setTimeout(() => {
+                updated.value[key] = false
+            }, 1200)
+
+            // Update local roles array accordingly
             if (response && response.props && response.props.role) {
                 const updatedRole = response.props.role
                 const idx = roles.value.findIndex(r => r.id === role.id)
                 if (idx !== -1) {
                     roles.value[idx].permissions = updatedRole.permissions
-                    // Sync the cached form's permissions to backend
                     if (permissionForms.value[role.id]) {
                         permissionForms.value[role.id].permissions = updatedRole.permissions.map((p: any) => p.id)
                     }
                 }
             } else {
-                // fallback: update from form
                 const idx = roles.value.findIndex(r => r.id === role.id)
                 if (idx !== -1) {
                     roles.value[idx].permissions = permissions.value.filter(p => form.permissions.includes(p.id))
                 }
             }
+
+            // Toast notifications
             if (!hasPerm) {
                 toast.success(`'${capitalize(perm.name)}' assigned to '${capitalize(role.name)}'`)
             } else {
                 toast.info(`'${capitalize(perm.name)}' removed from '${capitalize(role.name)}'`)
             }
-            updating.value[key] = false
-            updated.value[key] = true
-            setTimeout(() => { updated.value[key] = false }, 1200)
-            router.visit(route('roles.settings'), {
-                preserveState: true,
-                preserveScroll: true,
-            })
+
+            // Optional: No need to re-visit route here, it causes re-render
+            // router.visit(route('roles.settings'), {
+            //     preserveState: true,
+            //     preserveScroll: true,
+            // })
         },
         onError: (errors: any) => {
             updating.value[key] = false
@@ -174,6 +243,7 @@ const togglePermission = async (role: Role, perm: Permission) => {
         }
     })
 }
+
 
 function capitalize(str: string) {
     return str.charAt(0).toUpperCase() + str.slice(1)
@@ -340,11 +410,16 @@ const breadcrumbItems: BreadcrumbItem[] = [
                                         <Switch :checked="hasPermission(role, perm.id)"
                                             :disabled="updating[`${role.id}-${perm.id}`]"
                                             @update:checked="() => togglePermission(role, perm)" class="size-5" />
-                                        <span class="text-sm">{{ capitalize(perm.name) }}</span>
+                                        <span class="text-xs">{{ capitalize(perm.name) }}</span>
                                         <span v-if="updating[`${role.id}-${perm.id}`]"
-                                            class="text-xs text-muted-foreground ml-2">Updating...</span>
+                                            class="text-xl text-muted-foreground ml-2">
+                                            <Loader class="w-4 h-4 animate-spin" />
+                                        </span>
                                         <span v-else-if="updated[`${role.id}-${perm.id}`]"
-                                            class="text-xs text-green-600 dark:text-green-400 ml-2">Updated!</span>
+                                            class="text-xl text-green-600 dark:text-green-400 ml-2">
+                                            <Check class="w-4 h-4" />
+                                        </span>
+
                                     </div>
                                 </div>
                             </CollapsibleContent>

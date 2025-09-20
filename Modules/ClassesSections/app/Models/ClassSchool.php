@@ -2,6 +2,7 @@
 
 namespace Modules\ClassesSections\App\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\ClassesSections\App\Models\ClassModel;
@@ -10,13 +11,14 @@ use Modules\Schools\App\Models\School;
 
 class ClassSchool extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToAcademicYear;
 
     protected $table = 'class_schools';
 
     protected $fillable = [
         'class_id',
         'school_id',
+        'academic_year_id',
     ];
 
     protected $dates = ['deleted_at'];

@@ -3,6 +3,7 @@
 namespace Modules\ResultsPromotions\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -29,7 +30,7 @@ class ExamController extends Controller
         $role = $user->roles[0]->name;
         $schoolId = session('active_school_id');
 
-        $exams = Exam::with('examType', 'class', 'section', 'school')
+        $exams = Exam::with('examType', 'class', 'section', 'school', 'academicYear')
             ->withCount('examPapers')
             ->get()
             ->map(function ($exam) {
@@ -124,50 +125,9 @@ class ExamController extends Controller
                         $examData['section_id'] = $section->id;
                         $examData['class_id'] = $classId;
 
-                        // Academic Year Calculation
-                        if ($examTypeCode === '1st_term') {
-                            $academicYear = $startDate->format('Y') . '-' . $startDate->copy()->addYear()->format('Y');
-                        } else {
-                            // Try finding 1st term exam to get academic year
-                            $firstTermExam = Exam::where('class_id', $classId)
-                                ->where('section_id', $section->id)
-                                ->where('school_id', $data['school_id'])
-                                ->whereHas('examType', fn($q) => $q->where('code', '1st_term'))
-                                ->orderByDesc('created_at')
-                                ->first();
+                        $academicYearName = AcademicYear::find(session('active_academic_year_id'))?->name;
 
-                            if (!$firstTermExam) {
-                                throw new \Exception("Cannot create {$examType->name} for {$class->name} - {$section->name} without creating 1st Term first.");
-                            }
-
-                            $academicYear = $firstTermExam->academic_year;
-
-                            // Optional: Enforce 2nd term must have 1st, 3rd must have 1st and 2nd
-                            if ($examTypeCode === '2nd_term') {
-                                $termCheck = Exam::where('academic_year', $academicYear)
-                                    ->where('class_id', $classId)
-                                    ->where('section_id', $section->id)
-                                    ->whereHas('examType', fn($q) => $q->where('code', '1st_term'))
-                                    ->exists();
-
-                                if (!$termCheck) {
-                                    throw new \Exception("Cannot create 2nd Term without 1st Term for {$class->name} - {$section->name}.");
-                                }
-                            } elseif ($examTypeCode === '3rd_term') {
-                                $termCheck = Exam::where('academic_year', $academicYear)
-                                    ->where('class_id', $classId)
-                                    ->where('section_id', $section->id)
-                                    ->whereHas('examType', fn($q) => $q->whereIn('code', ['1st_term', '2nd_term']))
-                                    ->count();
-
-                                if ($termCheck < 2) {
-                                    throw new \Exception("Cannot create 3rd Term without both 1st and 2nd Terms for {$class->name} - {$section->name}.");
-                                }
-                            }
-                        }
-
-                        $examData['academic_year'] = $academicYear;
-                        $examData['title'] = "{$class->name} - {$section->name} | {$examType->name} Exam ({$academicYear})";
+                        $examData['title'] = "{$class->name} - {$section->name} | {$examType->name} Exam ({$academicYearName})";
 
                         // Avoid duplicate for same class/section/exam type/academic year
                         Exam::updateOrCreate(
@@ -175,15 +135,13 @@ class ExamController extends Controller
                                 'class_id' => $examData['class_id'],
                                 'section_id' => $examData['section_id'],
                                 'exam_type_id' => $examData['exam_type_id'],
-                                'academic_year' => $academicYear,
                             ],
                             $examData
                         );
                     }
                 }
+                return redirect()->route('exams.index')->with('success', 'Exam created for all selected classes.');
             });
-
-            return redirect()->route('exams.index')->with('success', 'Exam created for all selected classes.');
         } catch (\Throwable $e) {
             return back()->with('error', 'Failed: ' . $e->getMessage());
         }
@@ -214,26 +172,45 @@ class ExamController extends Controller
      */
     public function update(Request $request, Exam $exam)
     {
-
         $data = $request->validate([
             'exam_type_id'  => 'required|exists:exam_types,id',
             'class_id'      => 'required|exists:classes,id',
             'section_id'    => 'nullable|exists:sections,id',
-            'academic_year' => 'required|string',
             'start_date'    => 'required|date',
             'end_date'      => 'required|date',
             'instructions'  => 'nullable|string',
+            'result_entry_deadline' => 'required|date|after:end_date',
         ]);
-        $data['school_id'] = session('active_school_id');
+
         try {
             DB::transaction(function () use ($exam, $data) {
+                $schoolId = session('active_school_id');
+                $academicYear = AcademicYear::find(session('active_academic_year_id'))?->name;
+
+                $class = ClassModel::findOrFail($data['class_id']);
+                $section = $data['section_id'] ? Section::findOrFail($data['section_id']) : null;
+                $examType = ExamType::findOrFail($data['exam_type_id']);
+
+                $data['school_id'] = $schoolId;
+
+                // Dynamically generate title
+                $titleParts = [$class->name];
+                if ($section) {
+                    $titleParts[] = $section->name;
+                }
+                $title = implode(' - ', $titleParts);
+                $data['title'] = "{$title} | {$examType->name} Exam ({$academicYear})";
+
+                // Update the exam
                 $exam->update($data);
             });
-            return redirect()->route('exams.index')->with('success', 'Update exam successfully.');
+
+            return redirect()->route('exams.index')->with('success', 'Exam updated successfully.');
         } catch (\Throwable $e) {
-            return back()->with('error', 'Failed: ' . $e->getMessage());
+            return back()->with('error', 'Failed to update exam: ' . $e->getMessage());
         }
     }
+
 
     /**
      * Remove the specified resource from storage.

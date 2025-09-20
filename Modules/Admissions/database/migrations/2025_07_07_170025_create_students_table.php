@@ -97,7 +97,7 @@ return new class extends Migration
             $table->string('phone_no')->nullable();
             $table->string('mobile_no');
             $table->enum('status', ['applicant', 'admitted', 'rejected'])->default('applicant');
-            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
+            $table->foreignId('year')->default(date('Y'));
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
             $table->foreignId('updated_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamps();

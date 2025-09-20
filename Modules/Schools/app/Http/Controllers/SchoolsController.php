@@ -26,6 +26,8 @@ class SchoolsController extends Controller
      */
     public function index(Request $request)
     {
+
+        // dd(session()->all());
         $query = School::query();
         if ($search = $request->input('search')) {
             $query->where('name', 'like', "%$search%")

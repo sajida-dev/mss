@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\UpdateRolePermissions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -145,11 +146,9 @@ class RoleController extends Controller
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,id',
         ]);
-        app(\Spatie\Permission\PermissionRegistrar::class)->setPermissionsTeamId($role->school_id);
         if (isset($validated['permissions'])) {
-            $role->syncPermissions($validated['permissions']);
+            UpdateRolePermissions::dispatch($role->id, $validated['permissions']);
         }
-        app(\Spatie\Permission\PermissionRegistrar::class)->forgetCachedPermissions();
         $role->load('permissions');
 
         // Always check for Inertia first, and never return JSON for Inertia

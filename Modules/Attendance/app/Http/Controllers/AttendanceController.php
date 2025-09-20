@@ -22,11 +22,10 @@ class AttendanceController extends Controller
     public function index(Request $request)
     {
         $schoolId = session('active_school_id');
-
         // Get classes for the current school
         $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
             $q->where('schools.id', $schoolId);
-        })->orderBy('name')->get(['id', 'name']);
+        })->get(['id', 'name']);
 
         // Get sections for the current school
         $sections = Section::whereIn('id', function ($query) use ($schoolId) {
@@ -34,7 +33,7 @@ class AttendanceController extends Controller
                 ->from('class_school_sections')
                 ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
                 ->where('class_schools.school_id', $schoolId);
-        })->orderBy('name')->get(['id', 'name']);
+        })->get(['id', 'name']);
 
         // Get teachers for the current school
         $teachers = Teacher::where('school_id', $schoolId)

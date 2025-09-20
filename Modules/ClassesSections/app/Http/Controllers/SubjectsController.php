@@ -42,7 +42,7 @@ class SubjectsController extends Controller
         $activeSchoolId = session('active_school_id');
 
 
-        $classes = ClassModel::forSchool($activeSchoolId)->orderBy('name')->get();
+        $classes = ClassModel::forSchool($activeSchoolId)->get();
 
         $this->setSchoolContextForRoles($activeSchoolId);
 
@@ -316,7 +316,7 @@ class SubjectsController extends Controller
             ClassSubject::where('class_id', $classId)
                 ->where('school_id', $activeSchoolId)
                 ->delete();
-
+            $academicYearId = session('active_academic_year_id');
             // Then, create new assignments
             $assignments = [];
             foreach ($request->subject_ids as $subjectId) {
@@ -324,6 +324,7 @@ class SubjectsController extends Controller
                     'class_id' => $classId,
                     'subject_id' => $subjectId,
                     'school_id' => $activeSchoolId,
+                    'academic_year_id' => $academicYearId,
                     'created_at' => now(),
                     'updated_at' => now()
                 ];

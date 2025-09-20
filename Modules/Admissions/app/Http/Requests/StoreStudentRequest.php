@@ -71,6 +71,8 @@ class StoreStudentRequest extends FormRequest
             'permanent_address' => 'required|string|min:10|max:500',
             'phone_no' => ['nullable', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'], // e.g., 03001234567 or +923001234567
             'mobile_no' => ['required', 'string', 'regex:/^(03\d{9}|\+92\d{10})$/'], // e.g., 03001234567 or +923001234567
+            'admission_fee' => ['nullable', 'numeric'],
+            'due_date' => ['required_with:admission_fee', 'date'],
         ];
     }
 

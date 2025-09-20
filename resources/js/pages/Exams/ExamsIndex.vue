@@ -25,22 +25,23 @@
                 <template #item-dates="row">
                     {{ row.start_date }} – {{ row.end_date }}
                 </template>
+                <template #item-academic_year="row">
+                    {{ row.academic_year?.name ?? '-' }}
+                </template>
                 <template #item-actions="row">
                     <!-- extend result entry deadline -->
-                    <!-- v-can="'extend-exams'" -->
-
-                    <button v-if="row.status === 'in_progress' || row.status === 'scheduled'"
-                        class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
+                    <button v-can="'extend-exams'" v-if="row.status === 'in_progress' || row.status === 'scheduled'"
+                        class="inline-flex items-center justify-center rounded-full p-1 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         @click="openExtendModal(row)" aria-label="Extend Exam" title="Extend Result Entry Deadline">
                         <RefreshCw class="w-5 h-5" />
                     </button>
-                    <button v-can="'update-exams'"
-                        class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
+                    <button v-can="'update-exams'" v-if="row.status !== 'completed' || row.status !== 'cancelled'"
+                        class="inline-flex items-center justify-center rounded-full p-1 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         @click="openEditModal(row)" aria-label="Edit Exam" title="Edit">
                         <Edit class="w-5 h-5" />
                     </button>
                     <button v-can="'delete-exams'" :disabled="!row.can_be_deleted"
-                        class="inline-flex items-center justify-center rounded-full p-2"
+                        class="inline-flex items-center justify-center rounded-full p-1"
                         :class="row.can_be_deleted ? 'text-red-500 focus:ring-red-400' : 'text-red-300 cursor-not-allowed'"
                         :title="row.can_be_deleted ? 'Delete Exam' : `${row.exam_papers_count} papers submitted. Cannot delete.`"
                         @click="row.can_be_deleted && handleDelete(row)" aria-label="Delete Exam">
@@ -163,6 +164,10 @@ interface Section {
     id: number;
     name: string;
 }
+interface AcademicYear {
+    id: number;
+    name: string;
+}
 interface Exam {
     id: number;
     title: string;
@@ -176,6 +181,7 @@ interface Exam {
     exam_type: ExamType;
     class: Class;
     section?: Section;
+    academic_year: AcademicYear;
 }
 
 const props = defineProps<{
@@ -248,7 +254,7 @@ const headers = [
     { text: 'Type', value: 'exam_type_name', sortable: false, slotName: 'item-exam_type_name' },
     { text: 'Class', value: 'class_name', sortable: false, slotName: 'item-class_name' },
     { text: 'Section', value: 'section_name', sortable: false, slotName: 'item-section_name' },
-    { text: 'Academic Year', value: 'academic_year', sortable: false },
+    { text: 'Academic Year', value: 'academic_year', sortable: false, slotName: 'item-academic_year' },
     { text: 'Dates', value: 'dates', sortable: false, slotName: 'item-dates' },
     { text: 'Result Entry Deadline', value: 'result_entry_deadline', sortable: false, slotName: 'item-result_entry_deadline' },
     { text: 'Status', value: 'status' },

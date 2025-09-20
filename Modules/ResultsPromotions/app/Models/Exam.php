@@ -2,6 +2,8 @@
 
 namespace Modules\ResultsPromotions\app\Models;
 
+use App\Models\AcademicYear;
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\ClassesSections\App\Models\ClassModel;
@@ -12,7 +14,7 @@ use Modules\Schools\App\Models\School;
 class Exam extends Model
 {
     protected $guarded = [];
-    use SoftDeletes;
+    use SoftDeletes, BelongsToAcademicYear;
 
     protected $fillable = [
         'school_id',
@@ -58,5 +60,9 @@ class Exam extends Model
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class);
     }
 }

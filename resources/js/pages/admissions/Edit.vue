@@ -82,6 +82,8 @@ const form = useForm({
     permanent_address: student.permanent_address,
     phone_no: student.phone_no,
     mobile_no: student.mobile_no,
+    admission_fee: student.fee.amount,
+    due_date: student.fee.due_date,
 });
 
 watch(
@@ -109,8 +111,9 @@ function submit() {
             toast.success('Student updated successfully!');
             router.visit(route('admissions.index'));
         },
-        onError: () => {
-            toast.error('Please fix the errors in the form.');
+        onError: (e) => {
+            console.log('error: ', e)
+            toast.error('Please fix the errors in the form.' + e);
         },
     });
 }

@@ -2,15 +2,15 @@
 
 namespace Modules\ClassesSections\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\ClassesSections\app\Models\ClassSchool;
-use Modules\ClassesSections\app\Models\SchoolClass;
 use Modules\ClassesSections\app\Models\Section;
 
 class ClassSection extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToAcademicYear;
     protected $table = "class_school_section";
 
     protected $fillable = [

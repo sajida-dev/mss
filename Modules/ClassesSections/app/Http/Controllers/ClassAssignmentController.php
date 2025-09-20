@@ -3,6 +3,7 @@
 namespace Modules\ClassesSections\app\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Modules\ClassesSections\App\Models\ClassModel;
@@ -16,35 +17,46 @@ class ClassAssignmentController extends Controller
     {
         $request->validate(['class_ids' => 'required|array']);
 
-        // Step 1: Get current class IDs already assigned to the school
+        // Get current active academic year ID (from session or fallback)
+        $academicYearId = session('active_academic_year_id')
+            ?? AcademicYear::where('status', 'active')->value('id');
+
+        // Prepare array for sync with academic_year_id in pivot
+        $classIdsWithPivot = [];
+        foreach ($request->class_ids as $classId) {
+            $classIdsWithPivot[$classId] = ['academic_year_id' => $academicYearId];
+        }
+
+        // Get currently assigned classes before sync
         $currentClassIds = $school->classes()->pluck('classes.id')->toArray();
 
-        // Step 2: Find new class IDs being assigned
+        // Sync with pivot data
+        $school->classes()->sync($classIdsWithPivot);
+
+        // Determine newly added classes
         $newClassIds = array_diff($request->class_ids, $currentClassIds);
 
-        // Step 3: Sync all class assignments (adds/removes)
-        $school->classes()->sync($request->class_ids);
-
-        // Step 4: For newly added classes, find the class_school ID and insert default section (1)
+        // Insert default section for newly added classes
         foreach ($newClassIds as $classId) {
-            // Get the class_school record after syncing
             $classSchool = DB::table('class_schools')
                 ->where('class_id', $classId)
                 ->where('school_id', $school->id)
+                ->where('academic_year_id', $academicYearId) // filter by year!
                 ->first();
 
             if ($classSchool) {
-                // Insert default section (1) for this class_school
                 DB::table('class_school_sections')->insert([
                     'class_school_id' => $classSchool->id,
                     'section_id'      => 1,
                     'created_at'      => now(),
+                    'academic_year_id' => $academicYearId,
                 ]);
             }
         }
 
         return back()->with('success', 'Classes assigned with default section!');
     }
+
 
 
     public function unassign(School $school, ClassModel $class)

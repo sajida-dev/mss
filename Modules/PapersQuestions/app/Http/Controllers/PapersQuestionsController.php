@@ -190,7 +190,6 @@ class PapersQuestionsController extends Controller
                 // Get subjects for the class that are assigned to this school
                 $subjects = $class->subjects()
                     ->wherePivot('school_id', $schoolId)
-                    ->orderBy('name')
                     ->get(['subjects.id', 'subjects.name', 'subjects.code']);
             }
         }

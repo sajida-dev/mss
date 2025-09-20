@@ -77,6 +77,4 @@ function submit() {
 }
 </script>
 
-<style scoped>
-/* Modal styles for clarity */
-</style>
+<style scoped></style>

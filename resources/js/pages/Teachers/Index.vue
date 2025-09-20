@@ -143,13 +143,18 @@
                     </span>
                 </template>
                 <template #item-actions="row">
+                    <button v-can="'approve-teachers'" v-if="isAdmin && row.teacher?.status !== 'approved'"
+                        class="inline-flex items-center justify-center rounded-full p-1 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        @click="approveTeacher(row.id)">
+                        <CheckCircle class="w-5 h-5" />
+                    </button>
                     <button v-can="'update-teachers'"
-                        class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
+                        class="inline-flex items-center justify-center rounded-full p-1 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         @click="editTeacher(row.id)" aria-label="Edit Teacher" title="Edit Teacher">
                         <Icon name="edit" class="w-5 h-5" />
                     </button>
                     <button v-can="'delete-teachers'"
-                        class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
+                        class="inline-flex items-center justify-center rounded-full p-1 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeleteTeacher(row.id)" aria-label="Delete Teacher" title="Delete Teacher">
                         <Icon name="trash" class="w-5 h-5" />
                     </button>
@@ -192,7 +197,7 @@
                                         {{ row.teacher.school.name }}
                                     </span>
                                     <span v-for="role in row.roles" :key="role.id"
-                                        class="inline-block bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded-full px-3 py-1 text-xs font-semibold">
+                                        class="inline-block bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full px-3 py-1 text-xs font-semibold">
                                         {{ role.name }}
                                     </span>
                                 </div>
@@ -211,11 +216,7 @@
                                 <div class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Contact Information
                                 </div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
-                                        class="font-medium">Email:</span> {{ row.email }}</div>
-                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
                                         class="font-medium">Phone:</span> {{ row.phone_number || '-' }}</div>
-                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
-                                        class="font-medium">Username:</span> {{ row.username }}</div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
                                         class="font-medium">CNIC:</span> {{ row.teacher?.cnic || '-' }}</div>
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span
@@ -225,9 +226,7 @@
                                 <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">Date
                                         of
                                         Birth:</span> {{ row.teacher?.dob || '-' }}</div>
-                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">Date
-                                        of
-                                        Joining:</span> {{ row.teacher?.date_of_joining || '-' }}</div>
+
                             </div>
                             <div>
                                 <div class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Classes &
@@ -239,15 +238,24 @@
                                         class="font-medium">Experience (years):</span> {{
                                             row.teacher?.experience_years
                                             || '-' }}</div>
-                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
-                                        class="font-medium">Salary:</span> {{ row.teacher?.salary || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200">
+                                    <span class="font-medium">Salary:
+                                    </span>
+                                    RS {{ row.teacher?.salary || '-' }}
+                                </div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">Date
+                                        of
+                                        Joining:</span> {{ row.teacher?.date_of_joining || '-' }}</div>
                             </div>
                             <div>
                                 <div class="font-semibold text-gray-700 dark:text-gray-300 mb-2">Other Details</div>
-                                <div class="text-sm text-gray-700 dark:text-gray-200"><span
-                                        class="font-medium">Status:</span> {{ row.teacher?.status || '-' }}</div>
-                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">School
-                                        ID:</span> {{ row.teacher?.school_id || '-' }}</div>
+                                <div class="text-sm text-gray-700 dark:text-gray-200"><span class="font-medium">Status:
+                                    </span>
+                                    <span
+                                        class="inline-block bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded-full px-3 py-1 text-xs font-semibold">{{
+                                            row.teacher?.status || '-' }}</span>
+                                </div>
+
                                 <div v-can="'show-passwords'">
                                     <div class="font-semibold text-gray-700 dark:text-gray-300 mt-4 mb-2">Password</div>
                                     <div class="flex items-center gap-2">
@@ -376,7 +384,7 @@ import SchoolSwitcher from '@/components/ui/SchoolSwitcher.vue';
 import Avatar from '@/components/ui/avatar/Avatar.vue';
 import AvatarImage from '@/components/ui/avatar/AvatarImage.vue';
 import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
-import { Eye, EyeOff, Filter as FilterIcon, Plus } from 'lucide-vue-next';
+import { Check, CheckCircle, Eye, EyeOff, Filter as FilterIcon, Plus } from 'lucide-vue-next';
 import { nextTick } from 'vue';
 import PasswordResetModal from '@/components/ui/PasswordResetModal.vue';
 import PasswordVerificationModal from "@/components/ui/PasswordVerificationModal.vue";

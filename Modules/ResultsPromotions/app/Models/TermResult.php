@@ -2,6 +2,7 @@
 
 namespace Modules\ResultsPromotions\app\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admissions\App\Models\Student;
@@ -9,7 +10,7 @@ use Modules\Admissions\App\Models\Student;
 class TermResult extends Model
 {
     protected $guarded = [];
-    use SoftDeletes;
+    use SoftDeletes, BelongsToAcademicYear;
 
     protected $fillable = [
         'student_id',

@@ -2,6 +2,7 @@
 
 namespace Modules\Attendance\App\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -13,7 +14,7 @@ use Modules\Teachers\Models\Teacher;
 
 class Attendance extends Model
 {
-    use SoftDeletes;
+    use SoftDeletes, BelongsToAcademicYear;
 
     protected $fillable = [
         'student_id',

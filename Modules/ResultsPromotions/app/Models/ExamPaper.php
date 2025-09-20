@@ -2,6 +2,7 @@
 
 namespace Modules\ResultsPromotions\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -10,11 +11,10 @@ use Modules\PapersQuestions\App\Models\Paper;
 use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\ResultsPromotions\app\Models\ExamResult;
 
-// use Modules\ResultsPromotions\Database\Factories\ExamPaperFactory;
 
 class ExamPaper extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToAcademicYear;
 
     /**
      * The attributes that are mass assignable.

@@ -2,6 +2,7 @@
 
 namespace Modules\ClassesSections\App\Models;
 
+use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -11,7 +12,7 @@ use Modules\Schools\App\Models\School;
 
 class ClassSubject extends Model
 {
-    use HasFactory;
+    use HasFactory, BelongsToAcademicYear;
 
     protected $table = 'class_subject';
 
