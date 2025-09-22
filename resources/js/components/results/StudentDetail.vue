@@ -26,7 +26,7 @@
                                     Total</th>
                                 <th
                                     class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-                                    %</th>
+                                    Percentage (%)</th>
                                 <th
                                     class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                                     Status</th>
@@ -49,41 +49,39 @@
                                 <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ item.status }}</td>
                                 <td class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{ item.remarks }}</td>
                             </tr>
-                            <tr v-if="term.term_result">
+                            <tr>
                                 <th
-                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 text-gray-500 dark:text-gray-400 uppercase">
+                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
                                     Total Marks</th>
-                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
-                                    term.term_result.obtained_marks }} / {{ term.term_result.total_marks }}
+                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                    <span v-if="term.term_result">{{ term.term_result.obtained_marks }} / {{
+                                        term.term_result.total_marks }}</span>
+
                                 </td>
                                 <th
-                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 text-gray-500 dark:text-gray-400 uppercase">
+                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
                                     Percentage</th>
-                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
-                                    term.term_result.overall_percentage }}%
+                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                    <span v-if="term.term_result">{{
+                                        term.term_result.overall_percentage }}%</span>
+
                                 </td>
                             </tr>
-                            <tr v-if="term.term_result">
+                            <tr>
                                 <th
-                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 text-gray-500 dark:text-gray-400 uppercase">
+                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
                                     Grade</th>
-                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
-                                    term.term_result.grade }}
+                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                    <span v-if="term.term_result">{{ term.term_result.grade }}</span>
                                 </td>
                                 <th
-                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 text-gray-500 dark:text-gray-400 uppercase">
+                                    class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
                                     Remarks</th>
-                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">{{
-                                    term.term_result.remarks }}
+                                <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                                    <span v-if="term.term_result">{{ term.term_result.remarks }}</span>
+
                                 </td>
                             </tr>
-                            <div v-else
-                                class="mt-4 flex flex-row gap-2 justify-center items-center border border-amber-500 bg-amber-100 rounded-sm py-2 text-yellow-700 dark:text-yellow-300">
-                                <Info class="w-5 h-5 text-yellow-700 dark:text-yellow-300" />
-                                <p>
-                                    Term result has not been calculated yet.
-                                </p>
-                            </div>
                         </tbody>
                     </table>
                 </div>
@@ -94,6 +92,45 @@
         <div v-if="student.grouped_terms.all_terms_completed && student.grouped_terms.academic_result"
             class="mt-6 border-t pt-4">
             <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Academic Year Summary</h3>
+            <table>
+                <tbody>
+                    <tr>
+                        <th
+                            class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
+                            Total Marks</th>
+                        <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                            <span>{{
+                                student.grouped_terms.academic_result.promotion_status }}</span>
+
+                        </td>
+                        <th
+                            class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
+                            Percentage</th>
+                        <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                            <span> {{
+                                student.grouped_terms.academic_result.overall_percentage }}%%</span>
+
+                        </td>
+                    </tr>
+                    <tr>
+                        <th
+                            class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
+                            Grade</th>
+                        <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                            <span>{{
+                                student.grouped_terms.academic_result.final_grade }}</span>
+                        </td>
+                        <th
+                            class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
+                            Promotion Status</th>
+                        <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
+                            <span>{{
+                                student.grouped_terms.academic_result.promotion_status }}</span>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
             <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Overall Percentage:</strong> {{
                 student.grouped_terms.academic_result.overall_percentage }}%</p>
             <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Final Grade:</strong> {{

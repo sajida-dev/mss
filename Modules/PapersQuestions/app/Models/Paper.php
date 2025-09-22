@@ -50,7 +50,7 @@ class Paper extends Model
         'published' => 'boolean',
         'total_marks' => 'integer',
         'time_duration' => 'integer', // in minutes
-        'exam_date' => 'date',
+        'exam_date' => 'datetime:d-m-Y',
     ];
 
     public function class(): BelongsTo

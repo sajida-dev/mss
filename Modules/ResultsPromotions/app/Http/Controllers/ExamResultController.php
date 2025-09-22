@@ -199,16 +199,18 @@ class ExamResultController extends Controller
      */
     public function create(Request $request)
     {
-        $user = Auth::user();
         $schoolId = $request->input('school_id') ?? session('active_school_id');
         $classId = $request->input('class_id');
         $examPaperId = $request->input('exam_paper_id');
+        $examTermId = $request->input('exam_term_id');
 
         $schools = School::select('id', 'name')->get();
 
         $classes = $schoolId
             ? ClassModel::forSchool($schoolId)->select('id', 'name')->get()
             : [];
+
+        $examType = ExamType::select('id', 'name')->get();
 
         $students = ($classId)
             ? Student::where('class_id', $classId)
@@ -219,12 +221,16 @@ class ExamResultController extends Controller
             : [];
 
         $examPapers = ($classId)
-            ? ExamPaper::whereHas('exam', function ($query) use ($classId) {
+            ? ExamPaper::whereHas('exam', function ($query) use ($classId, $examTermId) {
                 $query->where('class_id', $classId);
+                $query->where('school_id', session('active_school_id'));
+                $query->where('exam_type_id', $examTermId);
             })
-            ->with(['exam', 'paper', 'subject']) // To access exam.name and paper.name later
+            ->with(['exam',  'subject']) // To access exam.name and paper.name later
             ->get()
             : [];
+
+
 
         $exam = ($classId)
             ? Exam::where('class_id', $classId)
@@ -256,6 +262,7 @@ class ExamResultController extends Controller
             'selectedExamPaperId' => $examPaperId,
             'noExamExists' => $noExamExists,
             'noExamPapers' => $noExamPapers,
+            'examType' => $examType,
         ]);
     }
 

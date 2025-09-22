@@ -18,6 +18,16 @@ class ClassSection extends Model
         'section_id',
     ];
 
+    protected $appends = ['class_name', 'section_name'];
+    public function getClassNameAttribute()
+    {
+        return $this->class->class->name;
+    }
+
+    public function getSectionNameAttribute()
+    {
+        return $this->section->name;
+    }
     protected $dates = ['deleted_at'];
 
     public function class()

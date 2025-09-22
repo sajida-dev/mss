@@ -23,6 +23,7 @@ class School extends Model
     ];
 
     protected $dates = ['deleted_at'];
+    protected $appends = ['logo_url', 'main_image_url', 'initials'];
 
     /**
      * Get the URL to the school's logo.

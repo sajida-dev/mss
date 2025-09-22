@@ -236,7 +236,7 @@
                                     class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.student_name
-                                    }}
+                                        }}
                                     </h2>
                                     <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
                                         <ClipboardList class="w-4 h-4" /> Registration #: {{
@@ -417,10 +417,14 @@ interface Props {
     fees: {
         data: Array<{
             id: number;
+            voucher_number: string;
             type: string;
             status: string;
             amount: number;
             due_date: string;
+            fine_amount?: number;
+            fine_due_date?: string;
+            paid_at?: string;
             student?: {
                 name: string;
                 registration_number: string;
@@ -473,10 +477,15 @@ const breadcrumbItems: BreadcrumbItem[] = [
         href: route('fees.index'),
     },
 ];
-
-function printVoucher(studentId: number) {
-    router.get(route('fees.voucher', { student: studentId }));
+function printVoucher(feeId: number) {
+    const url = route('fees.voucher', { id: feeId }); // Laravel route('fee.print')
+    const printWindow = window.open(url, "_blank"); // open Blade challan in new tab
+    printWindow?.focus();
+    printWindow?.addEventListener("load", () => {
+        printWindow.print();
+    });
 }
+
 const myBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
 
 const open = () => {
@@ -513,10 +522,14 @@ const serverItemsLength = computed(() => props.fees.total);
 const headers = [
     { text: '#', value: 'id' },
     { text: 'Student', value: 'student_name' },
+    { text: 'Voucher #', value: 'voucher_number' },
     { text: 'Type', value: 'type' },
     { text: 'Status', value: 'status' },
     { text: 'Amount', value: 'amount' },
     { text: 'Due Date', value: 'due_date' },
+    { text: 'Fine Amount', value: 'fine_amount' },
+    { text: 'Fine Due Date', value: 'fine_due_date' },
+    { text: 'Paid At', value: 'paid_at' },
     { text: 'Actions', value: 'actions', sortable: false },
 ];
 
@@ -524,10 +537,14 @@ const items = computed(() => {
     return props.fees.data.map((fee, index) => ({
         id: fee.id,
         student_name: fee.student?.name || `Student #${fee.id}`,
+        voucher_number: fee.voucher_number,
         type: fee.type,
         status: fee.status,
         amount: fee.amount,
         due_date: fee.due_date,
+        fine_amount: fee.fine_amount,
+        fine_due_date: fee.fine_due_date,
+        paid_at: fee.paid_at ?? 'N/A',
         fee: fee,
     }));
 });

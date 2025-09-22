@@ -121,7 +121,6 @@ function closeModal() {
 
 async function handleSubmit() {
     loading.value = true;
-    // Clear previous errors
     form.value.errors = { name: '' };
 
     try {

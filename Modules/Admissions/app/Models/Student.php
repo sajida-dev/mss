@@ -60,8 +60,8 @@ class Student extends Model
     ];
 
     protected $casts = [
-        'admission_date' => 'date',
-        'date_of_birth' => 'date',
+        'admission_date' => 'datetime:d-m-Y',
+        'date_of_birth' => 'datetime:d-m-Y',
         'inclusive' => 'boolean',
         'is_bricklin' => 'boolean',
         'is_orphan' => 'boolean',

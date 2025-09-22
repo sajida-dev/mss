@@ -27,6 +27,23 @@ class ClassSubject extends Model
         'updated_at' => 'datetime',
     ];
 
+    protected $appends = ['class_name', 'subject_name', 'school_name'];
+
+    public function getClassNameAttribute()
+    {
+        return $this->class->name;
+    }
+
+    public function getSubjectNameAttribute()
+    {
+        return $this->subject->name;
+    }
+
+    public function getSchoolNameAttribute()
+    {
+        return $this->school->name;
+    }
+
     /**
      * Get the class that owns the assignment.
      */

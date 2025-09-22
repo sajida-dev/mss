@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\Admissions\App\Models\Student;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Fees\Models\FeeInstallment;
+use NumberToWords\NumberToWords;
 
 class Fee extends Model
 {
@@ -24,9 +25,53 @@ class Fee extends Model
         'status',
         'due_date',
         'paid_at',
+        'fine_amount',
+        'fine_due_date',
         'voucher_number',
         'paid_voucher_image',
+        'created_at',
+        'updated_at',
+        'deleted_at',
     ];
+
+    protected $casts = [
+        'voucher_number',
+        'paid_voucher_image',
+
+    ];
+
+    protected $appends = ['amount_in_words', 'fine_amount_in_words', 'student_name', 'class_name'];
+
+
+    function amountToWords($amount)
+    {
+        $numberToWords = new NumberToWords();
+
+        $numberTransformer = $numberToWords->getNumberTransformer('en');
+
+        $words = $numberTransformer->toWords($amount); // converts 35000 to "thirty-five thousand"
+        return 'Rs. ' . ucfirst($words) . ' Only';
+    }
+
+    function getAmountInWordsAttribute()
+    {
+        return $this->amountToWords($this->attributes['amount']);
+    }
+
+    function getFineAmountInWordsAttribute()
+    {
+        return $this->amountToWords($this->attributes['fine_amount']);
+    }
+
+    function getStudentNameAttribute()
+    {
+        return $this->student->name;
+    }
+
+    function getClassNameAttribute()
+    {
+        return $this->class->name;
+    }
 
     public function student(): BelongsTo
     {

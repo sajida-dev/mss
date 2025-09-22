@@ -31,6 +31,18 @@ class FeeInstallment extends Model
         'paid_voucher_image',
     ];
 
+    protected $casts = [
+        'due_date' => 'datetime:d-m-Y',
+        'paid_at' => 'datetime:d-m-Y',
+    ];
+
+    protected $appends = ['student_name'];
+
+    public function getStudentNameAttribute()
+    {
+        return $this->student->name;
+    }
+
     protected $dates = ['due_date', 'paid_at'];
 
     public function fee()

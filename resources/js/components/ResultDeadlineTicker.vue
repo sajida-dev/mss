@@ -1,7 +1,7 @@
 <template>
     <div v-if="exams.length > 0"
         class="bg-yellow-100 dark:bg-yellow-900/20 border-b border-yellow-300 dark:border-yellow-700 py-2 px-4 overflow-hidden">
-        <Vue3Marquee :pauseOnHover="true" :speed="30" class="text-sm text-yellow-800 dark:text-yellow-300 marquee">
+        <Vue3Marquee :pauseOnHover="true" :speed="10" class="text-sm text-yellow-800 dark:text-yellow-300 marquee">
             <template v-for="exam in exams" :key="exam.id">
                 🔔 <strong>{{ exam.exam_type_name }} - {{ exam.academic_year_name }}</strong> — Result Submission
                 Deadline:

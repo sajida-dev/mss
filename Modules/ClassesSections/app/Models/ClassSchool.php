@@ -21,6 +21,18 @@ class ClassSchool extends Model
         'academic_year_id',
     ];
 
+    protected $appends = ['class_name', 'school_name'];
+
+    public function getClassNameAttribute()
+    {
+        return $this->class->name;
+    }
+
+    public function getSchoolNameAttribute()
+    {
+        return $this->school->name;
+    }
+
     protected $dates = ['deleted_at'];
 
     public function class()

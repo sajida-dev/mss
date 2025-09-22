@@ -18,6 +18,8 @@ return new class extends Migration
             $table->enum('status', ['unpaid', 'paid', 'cancelled'])->default('unpaid');
             $table->date('due_date');
             $table->dateTime('paid_at')->nullable();
+            $table->decimal('fine_amount', 10, 2)->nullable();
+            $table->date('fine_due_date')->nullable();
             $table->string('voucher_number')->nullable();
             $table->string('paid_voucher_image')->nullable();
             $table->timestamps();

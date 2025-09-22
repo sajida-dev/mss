@@ -65,6 +65,9 @@ class ProcessExamStatuses extends Command
                             DB::transaction(function () use ($exam) {
                                 app(ResultService::class)->finalizeTermResult($exam);
                                 $exam->update(['status' => 'completed']);
+                                if ($exam->examType && $exam->examType->isFinalTerm()) {
+                                    $this->finalizeAcademicResults();
+                                }
                             });
 
                             $this->info("Exam '{$exam->title}' moved to result_entery and TermResult updated.");
@@ -109,7 +112,7 @@ class ProcessExamStatuses extends Command
             foreach ($academicYears as $year) {
                 $termResults = TermResult::student($student)
                     ->academicYear($year)
-                    ->varified()
+                    // ->varified()
                     ->get();
 
                 $termTypes = $termResults->pluck('exam_type_id')->unique();
@@ -125,7 +128,7 @@ class ProcessExamStatuses extends Command
                     $totalMarks = $termResults->sum('total_marks');
                     $obtainedMarks = $termResults->sum('obtained_marks');
                     $grade = $this->getGrade($overall);
-                    $promotionStatus = $overall >= 40 ? 'promoted' : 'detained';
+                    $promotionStatus = $overall >= 40 ? 'promoted' : 'failed';
 
                     AcademicResult::updateOrCreate(
                         [
@@ -138,6 +141,7 @@ class ProcessExamStatuses extends Command
                             'total_marks' => $totalMarks,
                             'obtained_marks' => $obtainedMarks,
                             'overall_percentage' => $overall,
+                            'cumulative_gpa' => $this->calculateGPA($overall),
                             'final_grade' => $grade,
                             'promotion_status' => $promotionStatus,
                         ]
@@ -148,7 +152,17 @@ class ProcessExamStatuses extends Command
             }
         }
     }
-
+    /**
+     * Convert percentage to GPA
+     */
+    protected function calculateGPA(float $percentage): float
+    {
+        if ($percentage < 50) {
+            return 0.0;
+        }
+        $gpa = 2.0 + (($percentage - 50) / 40) * 2.0;
+        return round(min($gpa, 4.0), 2);
+    }
     private function getGrade($percentage)
     {
         return match (true) {

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { watch, ref, computed, reactive } from 'vue';
-import { router, useForm } from '@inertiajs/vue3';
+import { Head, router, useForm, usePage } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
 import TextInput from '@/components/form/TextInput.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
 import { Plus } from 'lucide-vue-next';
+const isSuperAdmin = usePage().props.isSuperAdmin;
 interface Student {
     id: number;
     name: string;
@@ -41,9 +42,11 @@ interface Props {
     classes: { id: number; name: string }[];
     students: Student[];
     examPapers: ExamPaper[];
+    examType: { id: number; name: string; }[];
     selectedSchoolId?: number;
     selectedClassId?: number;
     selectedExamPaperId?: number;
+    selectedExamTermId?: number;
     noExamExists: boolean;
     noExamPapers: boolean;
 }
@@ -53,6 +56,7 @@ const form = useForm<ExamResultForm>({
     school_id: props.selectedSchoolId ? String(props.selectedSchoolId) : '',
     class_id: props.selectedClassId ? String(props.selectedClassId) : '',
     exam_paper_id: props.selectedExamPaperId ? String(props.selectedExamPaperId) : '',
+    exam_term_id: props.selectedExamTermId ? String(props.selectedExamTermId) : '',
     results: props.students.map(student => ({
         student_id: student.id,
         obtained_marks: '',
@@ -86,30 +90,6 @@ function onStudentImagesChange(event: Event, index: number) {
 function removeStudentImage(index: number) {
     form.results[index].images = [];
     studentImagePreviews.value[index] = [];
-}
-
-function onSchoolChange() {
-    form.class_id = '';
-    form.exam_paper_id = '';
-    router.get(route('exam-results.create'), {
-        school_id: form.school_id,
-    }, { preserveState: true, preserveScroll: true, replace: true });
-}
-
-function onClassChange() {
-    form.exam_paper_id = '';
-    router.get(route('exam-results.create'), {
-        school_id: form.school_id,
-        class_id: form.class_id,
-    }, { preserveState: true, preserveScroll: true, replace: true });
-}
-
-function onExamPaperChange() {
-    router.get(route('exam-results.create'), {
-        school_id: form.school_id,
-        class_id: form.class_id,
-        exam_paper_id: form.exam_paper_id,
-    }, { preserveState: true, preserveScroll: true, replace: true });
 }
 
 function submitForm() {
@@ -167,12 +147,67 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
     return form.errors[key] as string | undefined;
 }
 
+const schoolOptions = computed(() =>
+    props.schools.map(s => ({ label: s.name, value: String(s.id) }))
+);
 
+const classOptions = computed(() =>
+    props.classes.map(c => ({ label: c.name, value: String(c.id) }))
+);
+
+const examTermOptions = computed(() =>
+    props.examType.map(e => ({ label: e.name, value: String(e.id) }))
+);
+
+const examPaperOptions = computed(() =>
+    props.examPapers.map(e => ({
+        label: `${e.subject.name} - ${e.exam.title}`,
+        value: String(e.id),
+    }))
+);
+
+watch(() => form.school_id, (schoolId) => {
+    if (schoolId) {
+        form.class_id = '';
+        form.exam_term_id = '';
+        form.exam_paper_id = '';
+
+        router.get(route('exam-results.create'), {
+            school_id: schoolId,
+        }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+});
+
+watch(() => form.class_id, (classId) => {
+    if (classId && form.school_id) {
+        form.exam_term_id = '';
+        form.exam_paper_id = '';
+
+        router.get(route('exam-results.create'), {
+            school_id: form.school_id,
+            class_id: classId,
+        }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+});
+
+watch(() => form.exam_term_id, (termId) => {
+    if (termId && form.class_id) {
+        form.exam_paper_id = '';
+
+        router.get(route('exam-results.create'), {
+            school_id: form.school_id,
+            class_id: form.class_id,
+            exam_term_id: termId,
+        }, { preserveState: true, preserveScroll: true, replace: true });
+    }
+});
 
 </script>
 
 <template>
     <AppLayout>
+
+        <Head title="Enter Exam Results" />
         <div class="max-w-7xl mx-auto w-full px-4 py-10">
             <div class="bg-white dark:bg-neutral-900 rounded-lg shadow-md p-6">
                 <div class="flex items-center justify-between mb-6">
@@ -202,26 +237,22 @@ function getResultFieldError(index: number, field: keyof ExamResult): string | u
                 </div>
 
                 <form @submit.prevent="submitForm" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
                         <!-- School -->
-                        <SelectInput id="school_id" v-model="form.school_id" label="School"
-                            :options="props.schools.map(s => ({ label: s.name, value: String(s.id) }))"
-                            placeholder="Select School" :error="errors.school_id" @change="onSchoolChange" />
-
+                        <SelectInput v-if="isSuperAdmin" id="school_id" v-model="form.school_id" label="School"
+                            :options="schoolOptions" placeholder="Select School" :error="errors.school_id" />
                         <!-- Class -->
-                        <SelectInput id="class_id" v-model="form.class_id" label="Class"
-                            :options="props.classes.map(c => ({ label: c.name, value: String(c.id) }))"
-                            placeholder="Select Class" :disabled="!form.school_id" :error="errors.class_id"
-                            @change="onClassChange" />
-
+                        <SelectInput id="class_id" v-model="form.class_id" label="Class" :options="classOptions"
+                            placeholder="Select Class" :error="errors.class_id" />
+                        <!-- Exam Type -->
+                        <SelectInput id="exam_term_id" v-model="form.exam_term_id" label="Exam Term"
+                            :options="examTermOptions" placeholder="Select Exam Term" :disabled="!form.class_id"
+                            :error="errors.exam_term_id" />
                         <!-- Exam Paper -->
                         <SelectInput id="exam_paper_id" v-model="form.exam_paper_id" label="Exam Paper"
-                            class="col-span-2"
-                            :options="props.examPapers.map(e => ({ label: `${e.subject.name} - ${e.exam.title} `, value: String(e.id) }))"
-                            placeholder="Select Exam Paper" :disabled="!form.class_id" :error="errors.exam_paper_id"
-                            @change="onExamPaperChange" />
+                            class="col-span-3" :options="examPaperOptions" placeholder="Select Exam Paper"
+                            :disabled="!form.exam_term_id" :error="errors.exam_paper_id" />
                     </div>
-
                     <!-- Students Table -->
                     <div v-if="props.students.length" class="overflow-x-auto mt-6">
                         <table class="w-full table-auto border-collapse">

@@ -395,4 +395,14 @@ class FeesController extends Controller
             return back()->withErrors(['error' => $msg]);
         }
     }
+
+    public function voucher(Fee $fee)
+    {
+        $fee->load('feeItems', 'student.class', 'student.school'); // eager load relations
+
+        return view('fee.challan', [
+            'fee' => $fee,
+            'student' => $fee->student,
+        ]);
+    }
 }

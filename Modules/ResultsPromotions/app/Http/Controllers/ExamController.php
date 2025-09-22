@@ -24,65 +24,157 @@ class ExamController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    // public function index()
+    // {
+
+    //     $user = Auth::user();
+
+    //     $role = $user->roles[0]->name;
+    //     $schoolId = session('active_school_id');
+
+    //     $exams = Exam::with('examType', 'class', 'section', 'school', 'academicYear')
+    //         ->withCount('examPapers')
+    //         ->get()
+    //         ->map(function ($exam) {
+    //             $exam->can_be_deleted = $exam->exam_papers_count === 0;
+    //             return $exam;
+    //         });
+    //     $examTypes = ExamType::all();
+
+    //     if ($role === 'superadmin') {
+    //         // Superadmin: get all classes for the selected school
+    //         $classes = ClassModel::forSchool($schoolId)
+    //             ->select('id', 'name')
+    //             ->get()
+    //             ->map(function ($class) {
+    //                 return [
+    //                     'id' => $class->id,
+    //                     'name' => $class->name,
+    //                 ];
+    //             })
+    //             ->values();
+    //     } else if ($role === 'teacher') {
+    //         // Teacher: get the class assigned to them via the teachers table
+    //         $teacher = Teacher::where('user_id', $user->id)
+    //             ->where('school_id', $schoolId)
+    //             ->first();
+
+    //         $classes = [];
+
+    //         if ($teacher && $teacher->class_id) {
+    //             $class = ClassModel::find($teacher->class_id);
+    //             if ($class) {
+    //                 $classes[] = [
+    //                     'id' => $class->id,
+    //                     'name' => $class->name,
+    //                 ];
+    //             }
+    //         }
+    //     } else {
+    //         // Other roles - optional, return empty or handle accordingly
+    //         $classes = collect();
+    //     }
+
+    //     return Inertia::render('Exams/ExamsIndex', [
+    //         'examTypes' => $examTypes,
+    //         'exams' => $exams,
+    //         'classes' => $classes,
+    //     ]);
+    // }
+
+    public function index(Request $request)
     {
 
         $user = Auth::user();
-
-        $role = $user->roles[0]->name;
+        $role = $user->roles[0]->name ?? null;
         $schoolId = session('active_school_id');
 
-        $exams = Exam::with('examType', 'class', 'section', 'school', 'academicYear')
-            ->withCount('examPapers')
-            ->get()
-            ->map(function ($exam) {
-                $exam->can_be_deleted = $exam->exam_papers_count === 0;
-                return $exam;
-            });
-        $examTypes = ExamType::all();
+        // Get filter inputs
+        $filterAcademicYearId = $request->input('academic_year_id');
+        $filterExamTypeId     = $request->input('exam_type_id');
+        $filterClassId        = $request->input('class_id');
+        $filterStatus         = $request->input('status');
+
+        // Build the query
+        $query = Exam::with(['examType', 'class', 'section', 'school', 'academicYear'])
+            ->withCount('examPapers');
+
+        // Apply filters
+        if ($filterAcademicYearId) {
+            $query->where('academic_year_id', $filterAcademicYearId);
+        }
+        if (!is_null($filterExamTypeId) && $filterExamTypeId !== '') {
+            $query->where('exam_type_id', $filterExamTypeId);
+        }
+        if ($filterClassId) {
+            $query->where('class_id', $filterClassId);
+        }
+        if ($filterStatus) {
+            $query->where('status', $filterStatus);
+        }
+
+        if ($schoolId) {
+            $query->where('school_id', $schoolId);
+        }
+
+        // Pagination
+        $exams = $query
+            ->orderBy('start_date', 'desc')
+            ->get();
+
+        // Compute can_be_deleted for each exam
+        $exams->transform(function ($exam) {
+            $exam->can_be_deleted = $exam->exam_papers_count === 0;
+            return $exam;
+        });
+
+        // Options for filters
+        $examTypes     = ExamType::select('id', 'name')->get();
+        $classes       = collect();
 
         if ($role === 'superadmin') {
-            // Superadmin: get all classes for the selected school
             $classes = ClassModel::forSchool($schoolId)
                 ->select('id', 'name')
-                ->get()
-                ->map(function ($class) {
-                    return [
-                        'id' => $class->id,
-                        'name' => $class->name,
-                    ];
-                })
-                ->values();
-        } else if ($role === 'teacher') {
-            // Teacher: get the class assigned to them via the teachers table
+                ->get();
+        } elseif ($role === 'teacher') {
             $teacher = Teacher::where('user_id', $user->id)
                 ->where('school_id', $schoolId)
                 ->first();
-
-            $classes = [];
-
             if ($teacher && $teacher->class_id) {
-                $class = ClassModel::find($teacher->class_id);
-                if ($class) {
-                    $classes[] = [
-                        'id' => $class->id,
-                        'name' => $class->name,
-                    ];
-                }
+                $classes = ClassModel::where('id', $teacher->class_id)
+                    ->select('id', 'name')
+                    ->get();
             }
-        } else {
-            // Other roles - optional, return empty or handle accordingly
-            $classes = collect();
         }
 
+        // dd($exams);
+        // Academic Years (all or scoped to school)
+        $academicYears = AcademicYear::select('id', 'name')->get();
+
+        // Possible status options – define them somewhere central
+        $statusOptions = [
+            ['value' => 'scheduled', 'label' => 'Scheduled'],
+            ['value' => 'in_progress', 'label' => 'In Progress'],
+            ['value' => 'result_entery', 'label' => 'Result Entry'],
+            ['value' => 'completed', 'label' => 'Completed'],
+            ['value' => 'cancelled', 'label' => 'Cancelled'],
+            // add others as needed
+        ];
+
         return Inertia::render('Exams/ExamsIndex', [
-            'examTypes' => $examTypes,
-            'exams' => $exams,
-            'classes' => $classes,
+            'exams'          => $exams,
+            'examTypes'      => $examTypes,
+            'classes'        => $classes,
+            'academicYears'  => $academicYears,
+            'statusOptions'  => $statusOptions,
+            'filters'        => [
+                'academic_year_id' => $filterAcademicYearId,
+                'exam_type_id'      => $filterExamTypeId,
+                'class_id'          => $filterClassId,
+                'status'            => $filterStatus,
+            ],
         ]);
     }
-
-
 
     /**
      * Show the form for creating a new resource.

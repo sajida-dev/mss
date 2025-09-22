@@ -16,6 +16,7 @@ class ClassModel extends Model
     protected $table = 'classes';
     protected $fillable = ['name'];
 
+
     public function classSchools()
     {
         return $this->hasMany(ClassSchool::class, 'class_id');

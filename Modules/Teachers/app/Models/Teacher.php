@@ -31,6 +31,25 @@ class Teacher extends Model
         'status',
     ];
 
+    protected $appends = ['user_name', 'school_name', 'class_name'];
+
+    protected $dates = ['deleted_at'];
+
+    public function getUserNameAttribute()
+    {
+        return $this->user->name;
+    }
+
+    public function getSchoolNameAttribute()
+    {
+        return $this->school->name;
+    }
+
+    public function getClassNameAttribute()
+    {
+        return $this->class->name;
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);

@@ -15,7 +15,7 @@ class ResultService
      */
     public function finalizeTermResult(Exam $exam)
     {
-        $students = Student::where('class_id', $exam->class_id)
+        $students = Student::class($exam->class_id)
             ->admitted()
             ->get();
 

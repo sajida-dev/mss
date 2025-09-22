@@ -6,11 +6,25 @@
         <div class="max-w-6xl mx-auto w-full px-2 sm:px-4 md:px-0 py-8">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Exams</h1>
+
+            </div>
+            <!-- Filters Row -->
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6 justify-center items-center">
+                <SelectInput id="filter_academic_year" label="Academic Year" :options="academicYearOptions"
+                    v-model="filters.academic_year_id" placeholder="All Years" />
+
+                <SelectInput id="filter_exam_type" label="Exam Type" :options="examTypeOptions"
+                    v-model="filters.exam_type_id" placeholder="All Types" />
+
+                <SelectInput id="filter_class" label="Class" :options="classOptions" v-model="filters.class_id"
+                    placeholder="All Classes" />
+
+                <SelectInput id="filter_status" label="Status" :options="statusOptions" v-model="filters.status"
+                    placeholder="All Status" />
                 <Button v-can="'create-exams'" variant="default" size="lg" @click="openCreateModal">
                     Add Exam
                 </Button>
             </div>
-
             <BaseDataTable :headers="headers" :items="exams" :loading="loading"
                 class="bg-white dark:bg-neutral-900 rounded-xl shadow border border-gray-200 dark:border-neutral-700">
                 <template #item-dates="row">
@@ -129,7 +143,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, defineProps } from 'vue';
+import { ref, watch, defineProps, watchEffect } from 'vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
@@ -164,10 +178,77 @@ const props = defineProps<{
     exams: Exam[];
     examTypes: SelectOption[];
     classes: SelectOption[];
+    academicYears: SelectOption[];
+    statusOptions: { label: string; value: string }[];
+    filters: {
+        academic_year_id?: string | number;
+        exam_type_id?: string | number;
+        class_id?: string | number;
+        status?: string;
+    };
 }>();
-const exams = ref<Exam[]>([...props.exams]);
+const exams = ref(props.exams);
 const examTypes = ref<SelectOption[]>([...props.examTypes]);
 const classes = ref<SelectOption[]>([...props.classes]);
+
+const filters = ref({
+    academic_year_id: props.filters.academic_year_id ?? '',
+    exam_type_id: props.filters.exam_type_id ?? '',
+    class_id: props.filters.class_id ?? '',
+    status: props.filters.status ?? '',
+});
+const academicYearOptions = ref<{ label: string; value: string | number }[]>([]);
+const examTypeOptions = ref<{ label: string; value: string | number }[]>([]);
+const classOptions = ref<{ label: string; value: string | number }[]>([]);
+const statusOptions = ref<{ label: string; value: string }[]>([]);
+watchEffect(() => {
+    if (props.academicYears?.length) {
+        academicYearOptions.value = props.academicYears.map(y => ({
+            label: y.name,
+            value: y.id,
+        }));
+    }
+});
+
+watchEffect(() => {
+    if (props.examTypes?.length) {
+        examTypeOptions.value = props.examTypes.map(e => ({
+            label: e.name,
+            value: e.id,
+        }));
+    }
+});
+
+watchEffect(() => {
+    if (props.classes?.length) {
+        classOptions.value = props.classes.map(c => ({
+            label: c.name,
+            value: c.id,
+        }));
+    }
+});
+
+watchEffect(() => {
+    if (props.statusOptions?.length) {
+        statusOptions.value = props.statusOptions.map(s => ({
+            label: s.label,
+            value: s.value,
+        }));
+    }
+});
+
+watch(filters, (newFilters) => {
+    const cleanedFilters = Object.fromEntries(
+        Object.entries(newFilters).filter(([_, v]) => v !== '' && v !== null && v !== undefined)
+    );
+
+    router.get(route('exams.index'), cleanedFilters, {
+        preserveState: true,
+        preserveScroll: true,
+        replace: true,
+    });
+}, { deep: true });
+
 
 const showExtendModal = ref(false)
 const selectedExam = ref<Record<string, any> | undefined>(undefined)
@@ -177,7 +258,7 @@ const openExtendModal = (exam: any) => {
     showExtendModal.value = true
 }
 
-watch(() => props.exams, (val) => (exams.value = [...val]));
+watch(() => props.exams, (val) => exams.value = [...val]);
 watch(() => props.examTypes, (val) => (examTypes.value = [...val]));
 watch(() => props.classes, (val) => (classes.value = [...val]));
 

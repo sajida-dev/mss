@@ -13,7 +13,7 @@
 
             <div v-if="groupedExamPapers.length > 0" v-for="group in groupedExamPapers" :key="group.exam.id"
                 class="mb-10">
-                <h2 class="text-xl font-semibold text-neutral-800 dark:text-neutral-100 mb-4">
+                <h2 class="text-xl font-semibold text-neutral-800 dark:text-neutral-100 mb-4">Exam:
                     {{ group.exam.title }}
                 </h2>
 
@@ -73,10 +73,11 @@
                         :options="filteredPapers.map(p => ({ label: p.title, value: p.id }))" placeholder="Select Paper"
                         :error="form.errors.paper_id" />
 
+                    <!-- Exam Date -->
+                    <TextInput id="exam_date" v-model="form.exam_date" label="Exam Date" type="date" required
+                        :error="form.errors.exam_date" />
+
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- Exam Date -->
-                        <TextInput id="exam_date" v-model="form.exam_date" label="Exam Date" type="date" required
-                            :error="form.errors.exam_date" />
 
                         <!-- Start Time -->
                         <TextInput id="start_time" v-model="form.start_time" label="Start Time" type="time" required

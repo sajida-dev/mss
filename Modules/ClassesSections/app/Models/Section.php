@@ -14,6 +14,8 @@ class Section extends Model
         'name',
     ];
 
+
+
     protected $dates = ['deleted_at'];
 
     public function classSchools()

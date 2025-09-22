@@ -28,6 +28,9 @@ class Attendance extends Model
         'teacher_id', // teacher_id who is responsible for this class
     ];
 
+    protected $appends = ['student_name', 'class_name', 'section_name', 'school_name'];
+
+
     protected $casts = [
         'date' => 'date',
     ];
@@ -37,6 +40,26 @@ class Attendance extends Model
     const STATUS_ABSENT = 'absent';
     const STATUS_LATE = 'late';
     const STATUS_HALF_DAY = 'half_day';
+
+    public function getStudentNameAttribute()
+    {
+        return $this->student->name;
+    }
+
+    public function getClassNameAttribute()
+    {
+        return $this->class->name;
+    }
+
+    public function getSectionNameAttribute()
+    {
+        return $this->section->name;
+    }
+
+    public function getSchoolNameAttribute()
+    {
+        return $this->school->name;
+    }
 
     public function student(): BelongsTo
     {

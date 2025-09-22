@@ -15,4 +15,6 @@ Route::middleware(['auth', 'set.active.school', 'verified', 'team.permission'])-
         Route::post('/{installment}/pay', 'markAsPaid')->name('installments.pay');
     });
     Route::post('/fees/{fee}/mark-as-paid', [FeesController::class, 'markAsPaid'])->name('fees.markAsPaid');
+    Route::get('/fees/{fee}/voucher', [FeesController::class, 'voucher'])
+        ->name('fees.voucher');
 });
