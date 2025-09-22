@@ -4,6 +4,7 @@ namespace Modules\ResultsPromotions\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademicYear;
+use App\Services\ResultService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,7 @@ class ExamController extends Controller
      */
     public function index()
     {
+
         $user = Auth::user();
 
         $role = $user->roles[0]->name;
@@ -119,8 +121,6 @@ class ExamController extends Controller
                     $sections = $class->sections()->get();
 
                     foreach ($sections as $section) {
-                        $startDate = Carbon::parse($data['start_date']);
-                        $examTypeCode = $examType->code;
                         $examData = [...$data];
                         $examData['section_id'] = $section->id;
                         $examData['class_id'] = $classId;
@@ -135,6 +135,7 @@ class ExamController extends Controller
                                 'class_id' => $examData['class_id'],
                                 'section_id' => $examData['section_id'],
                                 'exam_type_id' => $examData['exam_type_id'],
+                                'created_by' => Auth::id(),
                             ],
                             $examData
                         );
@@ -173,43 +174,21 @@ class ExamController extends Controller
     public function update(Request $request, Exam $exam)
     {
         $data = $request->validate([
-            'exam_type_id'  => 'required|exists:exam_types,id',
-            'class_id'      => 'required|exists:classes,id',
-            'section_id'    => 'nullable|exists:sections,id',
-            'start_date'    => 'required|date',
-            'end_date'      => 'required|date',
-            'instructions'  => 'nullable|string',
-            'result_entry_deadline' => 'required|date|after:end_date',
+            'start_date'            => 'required|date',
+            'end_date'              => 'required|date',
+            'instructions'          => 'required|string',
         ]);
 
         try {
             DB::transaction(function () use ($exam, $data) {
-                $schoolId = session('active_school_id');
-                $academicYear = AcademicYear::find(session('active_academic_year_id'))?->name;
-
-                $class = ClassModel::findOrFail($data['class_id']);
-                $section = $data['section_id'] ? Section::findOrFail($data['section_id']) : null;
-                $examType = ExamType::findOrFail($data['exam_type_id']);
-
-                $data['school_id'] = $schoolId;
-
-                // Dynamically generate title
-                $titleParts = [$class->name];
-                if ($section) {
-                    $titleParts[] = $section->name;
-                }
-                $title = implode(' - ', $titleParts);
-                $data['title'] = "{$title} | {$examType->name} Exam ({$academicYear})";
-
-                // Update the exam
                 $exam->update($data);
+                return redirect()->route('exams.index')->with('success', 'Exam updated successfully.');
             });
-
-            return redirect()->route('exams.index')->with('success', 'Exam updated successfully.');
         } catch (\Throwable $e) {
             return back()->with('error', 'Failed to update exam: ' . $e->getMessage());
         }
     }
+
 
 
     /**

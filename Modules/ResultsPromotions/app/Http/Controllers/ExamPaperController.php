@@ -36,10 +36,12 @@ class ExamPaperController extends Controller
                 'exam' => [
                     'id' => $ep->exam->id,
                     'title' => $ep->exam->title,
+                    'class_id' => $ep->exam->class_id,
                 ],
                 'paper' => [
                     'id' => $ep->paper->id,
                     'title' => $ep->paper->title,
+                    'class_id' => $ep->exam->class_id,
                 ],
                 'subject' => [
                     'id' => $ep->subject->id,
@@ -52,8 +54,8 @@ class ExamPaperController extends Controller
 
         return Inertia::render('Exams/ExamPapersIndex', [
             'examPapers' => $examPaper,
-            'exams' => Exam::select('id', 'title')->get(),
-            'papers' => Paper::select('id', 'title')->get(),
+            'exams' => Exam::select('id', 'title', 'class_id')->get(),
+            'papers' => Paper::select('id', 'title', 'class_id')->get(),
         ]);
     }
 

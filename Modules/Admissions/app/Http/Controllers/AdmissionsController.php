@@ -28,10 +28,7 @@ class AdmissionsController extends Controller
      */
     public function index(Request $request)
     {
-        $schools = School::active()->get('id', 'name')->toArray();
-        dd($schools);
-        $query = Student::with(['class', 'fee']); // Eager load class and fee relationships
-        // Always filter by selected school from session
+        $query = Student::with(['class', 'fee']);
         $selectedSchoolId = session('active_school_id');
         if ($selectedSchoolId) {
             $query->where('school_id', $selectedSchoolId);

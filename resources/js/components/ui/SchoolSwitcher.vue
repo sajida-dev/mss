@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useSchoolStore } from '@/stores/school';
-import { computed, onMounted, onUnmounted, watch } from 'vue';
+import { onMounted, onUnmounted, watch } from 'vue';
 import { storeToRefs } from 'pinia';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -13,7 +13,6 @@ defineProps<{ isSuperAdmin: boolean }>();
 
 const emit = defineEmits(['switched']);
 
-// RULE: Always use Inertia router methods for navigation and form submissions in Inertia-powered Vue apps.
 function switchSchool(school: any) {
     if (school.id !== selectedSchool.value?.id) {
         schoolStore.setSchool(school);
@@ -24,29 +23,18 @@ function switchSchool(school: any) {
                 emit('switched', school);
             },
             onError: (errors) => {
-                console.error('School switch failed:', errors); // Debug log
+                console.error('School switch failed:', errors);
             }
         });
     } else {
-        console.log('School already selected, no switch needed'); // Debug log
+        console.log('School already selected, no switch needed');
     }
-}
-
-function getInitials(name: string) {
-    return name
-        .split(' ')
-        .map(word => word.charAt(0))
-        .join('')
-        .toUpperCase()
-        .slice(0, 2);
 }
 
 function handleSchoolAdded(event: CustomEvent) {
     const newSchool = event.detail;
-    // Only add if not already present
     if (!schools.value.some(s => s.id === newSchool.id)) {
         schools.value.push(newSchool);
-        // If this is the first school, select it
         if (schools.value.length === 1) {
             schoolStore.setSchool(newSchool);
         }
@@ -74,7 +62,7 @@ onUnmounted(() => {
 });
 </script>
 <template>
-    <div v-if="isSuperAdmin" class="fixed z-50" style="top:72px; right:2rem;">
+    <div v-if="isSuperAdmin" class="fixed z-50" style="top:80px; right:2rem;">
         <DropdownMenu>
             <DropdownMenuTrigger as-child>
                 <div
@@ -106,7 +94,6 @@ onUnmounted(() => {
                             <AvatarImage
                                 :src="school.logo_url ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s'"
                                 :alt="school.name" />
-                            <!-- <AvatarFallback>{{ getInitials(school.name) }}</AvatarFallback> -->
                         </Avatar>
                         <div class="flex flex-col min-w-0">
                             <span class="font-medium truncate">{{ school.name }}</span>

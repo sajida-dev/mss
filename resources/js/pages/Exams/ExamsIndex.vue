@@ -13,20 +13,8 @@
 
             <BaseDataTable :headers="headers" :items="exams" :loading="loading"
                 class="bg-white dark:bg-neutral-900 rounded-xl shadow border border-gray-200 dark:border-neutral-700">
-                <template #item-exam_type_name="row">
-                    {{ row.exam_type?.name }}
-                </template>
-                <template #item-class_name="row">
-                    {{ row.class?.name ?? '-' }}
-                </template>
-                <template #item-section_name="row">
-                    {{ row.section?.name ?? '-' }}
-                </template>
                 <template #item-dates="row">
                     {{ row.start_date }} – {{ row.end_date }}
-                </template>
-                <template #item-academic_year="row">
-                    {{ row.academic_year?.name ?? '-' }}
                 </template>
                 <template #item-actions="row">
                     <!-- extend result entry deadline -->
@@ -35,7 +23,7 @@
                         @click="openExtendModal(row)" aria-label="Extend Exam" title="Extend Result Entry Deadline">
                         <RefreshCw class="w-5 h-5" />
                     </button>
-                    <button v-can="'update-exams'" v-if="row.status !== 'completed' || row.status !== 'cancelled'"
+                    <button v-can="'update-exams'" v-if="row.status !== 'completed' && row.status !== 'cancelled'"
                         class="inline-flex items-center justify-center rounded-full p-1 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400"
                         @click="openEditModal(row)" aria-label="Edit Exam" title="Edit">
                         <Edit class="w-5 h-5" />
@@ -60,17 +48,18 @@
                 <form @submit.prevent="handleSubmit" class="space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-                        <!-- Exam Type -->
-                        <SelectInput id="exam_type_id" v-model="form.exam_type_id" label="Exam Type" required
-                            :options="examTypes.map((et) => ({ label: et.name, value: et.id }))"
+                        <!-- Exam Type (disabled in edit, selectable in create) -->
+                        <SelectInput id="exam_type_id" v-model="form.exam_type_id" label="Exam Type" v-if="!isEdit"
+                            required :options="examTypes.map((et) => ({ label: et.name, value: et.id }))"
                             placeholder="Select Type" :error="form.errors.exam_type_id" />
 
-                        <!-- Result Entry Deadline -->
-                        <TextInput id="result_entry_deadline" type="date" v-model="form.result_entry_deadline"
-                            label="Result Entry Deadline" required placeholder="Select Result Entry Deadline"
-                            :error="form.errors.result_entry_deadline" />
-                        <!-- Multi-Class Checkboxes -->
-                        <div class="md:col-span-2">
+                        <!-- Result Entry Deadline (hidden in edit) -->
+                        <TextInput v-if="!isEdit" id="result_entry_deadline" type="date"
+                            v-model="form.result_entry_deadline" label="Result Entry Deadline" required
+                            placeholder="Select Result Entry Deadline" :error="form.errors.result_entry_deadline" />
+
+                        <!-- Multi-Class Checkboxes (only in create) -->
+                        <div v-if="!isEdit" class="md:col-span-2">
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
                                 Select Classes <span class="text-red-500">*</span>
                             </label>
@@ -89,7 +78,6 @@
                             </p>
                         </div>
 
-
                         <!-- Start Date -->
                         <TextInput id="start_date" v-model="form.start_date" label="Start Date" type="date" required
                             :error="form.errors.start_date" />
@@ -102,10 +90,10 @@
                         <div class="md:col-span-2">
                             <label for="instructions"
                                 class="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-1">
-                                Instructions <span class="text-red-500">*</span>
+                                Instructions
                             </label>
                             <textarea id="instructions" v-model="form.instructions" rows="3"
-                                placeholder="Optional instructions" required
+                                placeholder="Optional instructions"
                                 class="w-full px-3 py-2 rounded-md border bg-white dark:bg-neutral-900 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-1 focus:ring-primary-500 focus:border-primary-500"></textarea>
                             <p v-if="form.errors.instructions" class="text-red-500 text-sm mt-1">
                                 {{ form.errors.instructions }}
@@ -118,13 +106,13 @@
                         <Button type="submit" :disabled="loading">
                             {{ isEdit ? 'Update Exam' : 'Create Exam' }}
                         </Button>
-
                     </div>
                 </form>
-
             </DialogContent>
         </Dialog>
+
         <ExtendDeadlineModal :show="showExtendModal" :exam="selectedExam" @close="showExtendModal = false" />
+
         <Dialog v-model:open="showDeleteDialog">
             <DialogContent>
                 <DialogHeader>
@@ -142,7 +130,7 @@
 
 <script setup lang="ts">
 import { ref, watch, defineProps } from 'vue';
-import { Head, router, useForm, usePage } from '@inertiajs/vue3';
+import { Head, router, useForm } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import { Button } from '@/components/ui/button';
@@ -150,38 +138,26 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import TextInput from '@/components/form/TextInput.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
 import ManageLayout from './ManageLayout.vue';
-import axios from 'axios';
 import { ExamType } from '@/types';
 import { Edit, RefreshCw, Trash } from 'lucide-vue-next';
 import ExtendDeadlineModal from '@/components/ExtendDeadlineModal.vue';
 
 interface SelectOption { id: number; name: string; }
-interface Class {
-    id: number;
-    name: string;
-}
-interface Section {
-    id: number;
-    name: string;
-}
-interface AcademicYear {
-    id: number;
-    name: string;
-}
+
 interface Exam {
     id: number;
     title: string;
     class_id: number;
-    section_id?: number;
+    exam_type: ExamType;
+    class_name?: string;
+    section_name?: string;
+    academic_year_name?: string;
     result_entry_deadline: string;
     start_date: string;
     end_date: string;
     status: string;
     instructions?: string;
-    exam_type: ExamType;
-    class: Class;
-    section?: Section;
-    academic_year: AcademicYear;
+    exam_type_name?: string;
 }
 
 const props = defineProps<{
@@ -192,8 +168,6 @@ const props = defineProps<{
 const exams = ref<Exam[]>([...props.exams]);
 const examTypes = ref<SelectOption[]>([...props.examTypes]);
 const classes = ref<SelectOption[]>([...props.classes]);
-const sections = ref<SelectOption[]>([]);
-const sectionCache = new Map();
 
 const showExtendModal = ref(false)
 const selectedExam = ref<Record<string, any> | undefined>(undefined)
@@ -207,26 +181,6 @@ watch(() => props.exams, (val) => (exams.value = [...val]));
 watch(() => props.examTypes, (val) => (examTypes.value = [...val]));
 watch(() => props.classes, (val) => (classes.value = [...val]));
 
-async function fetchSections(classId: string | number) {
-    if (sectionCache.has(classId)) {
-        sections.value = sectionCache.get(classId);
-        return;
-    }
-
-    try {
-        if (classId) {
-            const res = await axios.get(`/api/classes/${classId}/sections`);
-            sectionCache.set(classId, res.data);
-            sections.value = res.data;
-        } else {
-            console.error('classId is missing');
-        }
-
-    } catch (error) {
-        console.error('Failed to load sections:', error);
-        sections.value = [];
-    }
-}
 
 const loading = ref(false);
 const modalOpen = ref(false);
@@ -254,7 +208,7 @@ const headers = [
     { text: 'Type', value: 'exam_type_name', sortable: false, slotName: 'item-exam_type_name' },
     { text: 'Class', value: 'class_name', sortable: false, slotName: 'item-class_name' },
     { text: 'Section', value: 'section_name', sortable: false, slotName: 'item-section_name' },
-    { text: 'Academic Year', value: 'academic_year', sortable: false, slotName: 'item-academic_year' },
+    { text: 'Academic Year', value: 'academic_year_name', sortable: false, slotName: 'item-academic_year' },
     { text: 'Dates', value: 'dates', sortable: false, slotName: 'item-dates' },
     { text: 'Result Entry Deadline', value: 'result_entry_deadline', sortable: false, slotName: 'item-result_entry_deadline' },
     { text: 'Status', value: 'status' },
@@ -265,6 +219,14 @@ function openCreateModal() {
     isEdit.value = false;
     editingItem.value = null;
     form.reset();  // resets all fields and errors
+    form.id = null;
+    form.exam_type_id = '';
+    form.class_ids = [];
+    form.class_id = '';
+    form.result_entry_deadline = '';
+    form.start_date = '';
+    form.end_date = '';
+    form.instructions = '';
     modalOpen.value = true;
 }
 
@@ -273,40 +235,33 @@ function openEditModal(row: Exam) {
     editingItem.value = row;
     form.reset(); // clear errors and reset to defaults
 
-    form.id = row.id,
-        form.exam_type_id = row.exam_type.id ?? '',
-        form.class_id = row.class_id,
-        form.result_entry_deadline = row.result_entry_deadline,
-        form.start_date = row.start_date,
-        form.end_date = row.end_date,
-        form.instructions = row.instructions ?? '',
+    form.id = row.id;
+    form.exam_type_id = row.exam_type.id ?? '';
+    form.class_ids = []; // Not editable on edit
+    form.class_id = ''; // Not editable on edit
+    form.result_entry_deadline = ''; // hide in edit
+    form.start_date = row.start_date;
+    form.end_date = row.end_date;
+    form.instructions = row.instructions ?? '';
 
-        modalOpen.value = true;
+    modalOpen.value = true;
 }
 
 function closeModal() {
     modalOpen.value = false;
+    form.reset();
+    loading.value = false;
+    editingItem.value = null;
 }
 
 function handleSubmit() {
     loading.value = true;
-
-    // Normalize empty string to null for backend
-    const payload = {
-        exam_type_id: form.exam_type_id === '' ? null : form.exam_type_id,
-        class_ids: form.class_ids.length > 0 ? form.class_ids : null,
-        academic_year: form.result_entry_deadline,
-        start_date: form.start_date,
-        end_date: form.end_date,
-        instructions: form.instructions,
-    };
-
     if (isEdit.value && form.id !== null) {
         form.put(`/exams/${form.id}`, {
 
             preserveScroll: true,
             onSuccess: () => {
-                toast.success('Exam updated!');
+                toast.success('Exam updated successfully!');
                 closeModal();
                 router.reload({ only: ['exams'] });
             },

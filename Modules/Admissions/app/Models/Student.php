@@ -10,7 +10,9 @@ use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\Storage;
 use Modules\Admissions\Models\StudentEnrollment;
 use Modules\ClassesSections\app\Models\Section;
+use Modules\ResultsPromotions\app\Models\AcademicResult;
 use Modules\ResultsPromotions\app\Models\ExamResult;
+use Modules\ResultsPromotions\app\Models\TermResult;
 
 class Student extends Model
 {
@@ -57,6 +59,29 @@ class Student extends Model
         'status',
     ];
 
+    protected $casts = [
+        'admission_date' => 'date',
+        'date_of_birth' => 'date',
+        'inclusive' => 'boolean',
+        'is_bricklin' => 'boolean',
+        'is_orphan' => 'boolean',
+        'is_qsc' => 'boolean',
+    ];
+
+    protected $hidden = [
+        'profile_photo_path',
+        'created_at',
+        'updated_at',
+        'deleted_at',
+    ];
+
+    protected $with = [
+        'school',
+        'class',
+        'section',
+    ];
+
+
     /**
      * The accessors to append to the model's array form.
      *
@@ -65,6 +90,9 @@ class Student extends Model
     protected $appends = [
         'profile_photo_url',
         'initials',
+        'class_name',
+        'section_name',
+        'school_name',
     ];
 
     /**
@@ -93,6 +121,34 @@ class Student extends Model
             ->take(2)
             ->join('');
     }
+    /**
+     * Get the class name of student.
+     *
+     * @return string
+     */
+    public function getClassNameAttribute()
+    {
+        return $this->class ? $this->class->name : null;
+    }
+    /**
+     * Get the section name of student.
+     *
+     * @return string
+     */
+    public function getSectionNameAttribute()
+    {
+        return $this->section ? $this->section->name : null;
+    }
+    /**
+     * Get the school name of student.
+     *
+     * @return string
+     */
+    public function getSchoolNameAttribute()
+    {
+        return $this->school ? $this->school->name : null;
+    }
+
     public function section()
     {
         return $this->belongsTo(Section::class, 'section_id');
@@ -102,8 +158,18 @@ class Student extends Model
     {
         return $query->where('status', 'admitted');
     }
-
-
+    public function scopeForClass($query, $classId)
+    {
+        return $query->where('class_id', $classId);
+    }
+    public function scopeForSection($query, $sectionId)
+    {
+        return $query->where('section_id', $sectionId);
+    }
+    public function scopeForSchool($query, $schoolId)
+    {
+        return $query->where('school_id', $schoolId);
+    }
     public function fees()
     {
         return $this->hasMany(Fee::class);
@@ -136,5 +202,13 @@ class Student extends Model
     public function results()
     {
         return $this->hasMany(ExamResult::class);
+    }
+    public function termResults()
+    {
+        return $this->hasMany(TermResult::class, 'student_id');
+    }
+    public function academicResults()
+    {
+        return $this->hasMany(AcademicResult::class, 'student_id');
     }
 }

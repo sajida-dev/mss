@@ -70,7 +70,7 @@
 
                     <!-- Paper -->
                     <SelectInput id="paper_id" v-model="form.paper_id" label="Paper" required
-                        :options="papers.map(p => ({ label: p.title, value: p.id }))" placeholder="Select Paper"
+                        :options="filteredPapers.map(p => ({ label: p.title, value: p.id }))" placeholder="Select Paper"
                         :error="form.errors.paper_id" />
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -135,7 +135,7 @@ import TextInput from '@/components/form/TextInput.vue';
 import { computed } from 'vue';
 import { Building2 } from 'lucide-vue-next';
 
-interface SelectOption { id: number; title: string; }
+interface SelectOption { id: number; title: string; class_id: number; }
 
 interface ExamPaper {
     id: number;
@@ -146,8 +146,8 @@ interface ExamPaper {
     end_time?: string;
     total_marks: number;
     passing_marks: number;
-    exam: { id: number; title: string };
-    paper: { id: number; title: string };
+    exam: { id: number; title: string, };
+    paper: { id: number; title: string, };
     subject: { id: number; name: string };
 }
 
@@ -170,7 +170,6 @@ const isEdit = ref(false);
 const editingItem = ref<ExamPaper | null>(null);
 const showDeleteDialog = ref(false);
 const itemToDelete = ref<ExamPaper | null>(null);
-
 // useForm definition
 const form = useForm({
     exam_id: undefined as number | undefined,
@@ -210,6 +209,17 @@ const groupedExamPapers = computed(() => {
     return Object.values(grouped); // returns array of { exam, papers }
 });
 
+
+const selectedExam = computed(() => {
+    return exams.value.find(ex => ex.id === Number(form.exam_id));
+});
+
+const filteredPapers = computed(() => {
+
+    if (!selectedExam.value) return [];
+
+    return papers.value.filter(p => p.class_id === selectedExam.value!.class_id);
+});
 
 function openCreateModal() {
     isEdit.value = false;
@@ -271,7 +281,6 @@ function handleDelete(row: { value: ExamPaper }) {
 
 function confirmDelete() {
     if (!itemToDelete.value) return;
-    console.log('itemToDelete.value', itemToDelete.value);
     form.processing = true;
 
     router.delete(`/exam-papers/${itemToDelete.value.id}`, {

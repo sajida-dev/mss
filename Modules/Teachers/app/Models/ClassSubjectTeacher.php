@@ -6,6 +6,11 @@ use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\ClassesSections\App\Models\ClassModel;
+use Modules\ClassesSections\App\Models\Subject;
+use Modules\Schools\App\Models\School;
+use Modules\Teachers\Models\Teacher;
+
 
 class ClassSubjectTeacher extends Model
 {
@@ -28,7 +33,7 @@ class ClassSubjectTeacher extends Model
      */
     public function teacher(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Teachers\Models\Teacher::class);
+        return $this->belongsTo(Teacher::class);
     }
 
     /**
@@ -36,7 +41,7 @@ class ClassSubjectTeacher extends Model
      */
     public function class(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\ClassModel::class, 'class_id');
+        return $this->belongsTo(ClassModel::class, 'class_id');
     }
 
     /**
@@ -44,7 +49,7 @@ class ClassSubjectTeacher extends Model
      */
     public function subject(): BelongsTo
     {
-        return $this->belongsTo(\Modules\ClassesSections\App\Models\Subject::class);
+        return $this->belongsTo(Subject::class);
     }
 
     /**
@@ -52,7 +57,7 @@ class ClassSubjectTeacher extends Model
      */
     public function school(): BelongsTo
     {
-        return $this->belongsTo(\Modules\Schools\App\Models\School::class);
+        return $this->belongsTo(School::class);
     }
 
     /**

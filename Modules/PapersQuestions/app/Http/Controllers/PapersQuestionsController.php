@@ -3,6 +3,7 @@
 namespace Modules\PapersQuestions\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Modules\PapersQuestions\App\Models\Paper;
@@ -25,7 +26,13 @@ class PapersQuestionsController extends Controller
     {
         try {
             $schoolId = session('active_school_id');
-            $query = Paper::query()->with(['class', 'section', 'teacher.user', 'subject'])
+            $query = Paper::query()->with([
+                'class:id,name',
+                'section:id,name',
+                'teacher.user:id,name',
+                'subject:id,name',
+                'academicYear:id,name',
+            ])
                 ->withCount('questions');
 
             // Filter by selected school
@@ -54,7 +61,7 @@ class PapersQuestionsController extends Controller
             }
 
             $perPage = $request->input('per_page', 12);
-            $papers = $query->orderBy('created_at', 'desc')->paginate($perPage)->withQueryString();
+            $papers = $query->orderBy('created_at', 'desc')->paginate($perPage)->through(fn($paper) => $paper);
 
             // Get classes, sections, and teachers for filters
             $classes = collect();
@@ -64,7 +71,7 @@ class PapersQuestionsController extends Controller
             if ($schoolId) {
                 $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
                     $q->where('schools.id', $schoolId);
-                })->orderBy('name')->get(['id', 'name']);
+                })->get(['id', 'name']);
 
                 // Get sections that are associated with classes in this school through pivot tables
                 $sections = Section::whereIn('id', function ($query) use ($schoolId) {
@@ -72,7 +79,7 @@ class PapersQuestionsController extends Controller
                         ->from('class_school_sections')
                         ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
                         ->where('class_schools.school_id', $schoolId);
-                })->orderBy('name')->get(['id', 'name']);
+                })->get(['id', 'name']);
 
                 // Get teachers with their names from users table
                 $teachers = Teacher::join('users', 'teachers.user_id', '=', 'users.id')
@@ -115,7 +122,7 @@ class PapersQuestionsController extends Controller
             // Get classes for the school
             $classes = ClassModel::whereHas('schools', function ($q) use ($schoolId) {
                 $q->where('schools.id', $schoolId);
-            })->orderBy('name')->get(['id', 'name']);
+            })->get(['id', 'name']);
 
             // Get sections that are associated with classes in this school through pivot tables
             $sections = Section::whereIn('id', function ($query) use ($schoolId) {
@@ -123,7 +130,7 @@ class PapersQuestionsController extends Controller
                     ->from('class_school_sections')
                     ->join('class_schools', 'class_school_sections.class_school_id', '=', 'class_schools.id')
                     ->where('class_schools.school_id', $schoolId);
-            })->orderBy('name')->get(['id', 'name']);
+            })->get(['id', 'name']);
 
             // Get teachers with their names from users table
             $teachers = Teacher::join('users', 'teachers.user_id', '=', 'users.id')
@@ -260,11 +267,11 @@ class PapersQuestionsController extends Controller
             $titleParts[] = $subject->name;
         }
 
-        $titleParts[] = 'Mids Exam Paper';
+
         if ($class) {
-            $titleParts[] = 'Class ' . $class->name;
+            $titleParts[] = $class->name;
         }
-        $titleParts[] = date('Y');
+        $titleParts[] = AcademicYear::find(session('active_academic_year_id'))?->name;
         $generatedTitle = implode(' - ', $titleParts);
         try {
             DB::beginTransaction();
@@ -280,6 +287,7 @@ class PapersQuestionsController extends Controller
                 'total_marks' => $request->total_marks,
                 'time_duration' => $request->time_duration ?? 120,
                 'instructions' => $request->instructions,
+                'academic_year_id' => session('active_academic_year_id'),
             ]);
 
             // Create questions
@@ -312,7 +320,7 @@ class PapersQuestionsController extends Controller
      */
     public function show($id)
     {
-        $paper = Paper::with(['class', 'section', 'teacher', 'questions', 'subject'])->findOrFail($id);
+        $paper = Paper::with(['class', 'section', 'teacher', 'questions', 'subject', 'academicYear'])->find($id);
 
         return Inertia::render('PapersQuestions/Show', [
             'paper' => $paper,

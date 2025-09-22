@@ -32,7 +32,7 @@ return new class extends Migration
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreign('exam_id')->references('id')->on('exams')->onDelete('cascade');
             $table->foreign('verified_by')->references('id')->on('users')->onDelete('set null');
-            $table->unique(['student_id', 'exam_id']); // One term result per student per exam
+            $table->unique(['student_id', 'exam_id']);
             $table->index(['student_id', 'academic_year_id', 'exam_type_id']);
         });
     }

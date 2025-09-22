@@ -164,23 +164,23 @@
                 <template #item-title="row">
                     <div class="font-medium text-gray-900 dark:text-gray-100">{{ row.title }}</div>
                     <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ row.subject?.name || 'No Subject' }}
+                        {{ row.subject_name || 'No Subject' }}
                     </div>
                 </template>
                 <template #item-class_section="row">
                     <div class="text-gray-900 dark:text-gray-100">
-                        <div class="font-medium">{{ row.class?.name || '-' }}</div>
+                        <div class="font-medium">{{ row.class_name || '-' }}</div>
                         <div class="text-sm text-gray-500 dark:text-gray-400">
-                            {{ row.section?.name || 'No Section' }}
+                            {{ row.section_name || 'No Section' }}
                         </div>
                     </div>
                 </template>
-                <template #item-subject="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.subject?.name || '-' }}</span>
+                <!-- <template #item-subject="row">
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.subject_name || '-' }}</span>
                 </template>
                 <template #item-teacher="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.teacher?.user?.name || '-' }}</span>
-                </template>
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.teacher_name || '-' }}</span>
+                </template> -->
                 <template #item-duration="row">
                     <span class="text-gray-900 dark:text-gray-100">{{ row.time_duration || 0 }} min</span>
                 </template>
@@ -190,6 +190,9 @@
                 <template #item-questions_count="row">
                     <span class="text-gray-900 dark:text-gray-100">{{ row.questions_count || 0 }} questions</span>
                 </template>
+                <!-- <template #item-year="row">
+                    <span class="text-gray-900 dark:text-gray-100">{{ row.academic_year_name || '-' }}</span>
+                </template> -->
                 <template #item-published="row">
                     <span :class="{
                         'inline-block rounded-full px-2 py-0.5 text-xs font-semibold': true,
@@ -205,11 +208,11 @@
                         @click="viewPaper(row.id)" aria-label="View Paper" title="View Paper">
                         <Eye class="w-5 h-5" />
                     </button>
-                    <!-- <button v-can="'print-papers'"
-                    class="inline-flex items-center justify-center rounded-full p-2 text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 mr-1"
-                    @click="printPaper(row.id)" aria-label="Print Paper" title="Print Paper">
-                    <Printer class="w-5 h-5" />
-                </button> -->
+                    <button v-can="'print-papers'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 mr-1"
+                        @click="printPaper(row.id)" aria-label="Print Paper" title="Print Paper">
+                        <Printer class="w-5 h-5" />
+                    </button>
                     <button v-can="'publish-papers'" :class="[
                         'inline-flex items-center justify-center rounded-full p-2 mr-1 focus:outline-none focus:ring-2',
                         row.published
@@ -218,8 +221,8 @@
                     ]" @click="togglePublishStatus(row.id, row.published)"
                         :aria-label="row.published ? 'Unpublish Paper' : 'Publish Paper'"
                         :title="row.published ? 'Unpublish Paper' : 'Publish Paper'">
-                        <EyeOff v-if="row.published" class="w-5 h-5" />
-                        <Eye v-else class="w-5 h-5" />
+                        <Lock v-if="row.published" class="w-5 h-5" />
+                        <Rocket v-else class="w-5 h-5" />
                     </button>
                     <button v-can="'update-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
@@ -296,7 +299,7 @@ import { useForm, router, Head } from '@inertiajs/vue3';
 import { toast } from 'vue3-toastify';
 import { BreadcrumbItem } from '@/types';
 import AppLayout from "@/layouts/AppLayout.vue";
-import { FilterIcon, Plus, Info, CheckCircle, X, Eye, EyeOff, Edit, Printer, Trash } from "lucide-vue-next";
+import { FilterIcon, Plus, Info, CheckCircle, X, Eye, EyeOff, Edit, Printer, Trash, Rocket, FileArchive, Lock } from "lucide-vue-next";
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
 import Button from '@/components/ui/button/Button.vue';
 import AlertDialog from '@/components/AlertDialog.vue';
@@ -310,29 +313,22 @@ interface Props {
             id: number;
             title: string;
             published: boolean;
-            class?: {
-                name: string;
-            };
-            section?: {
-                name: string;
-            };
-            subject?: {
-                name: string;
-            };
-            teacher?: {
-                user: {
-                    name: string;
-                }
-            };
+            class_name?: string;
+            academic_year_name?: string;
+            teacher_name?: string;
+            section_name?: string;
+            subject_name?: string;
             questions_count?: number;
             total_marks?: number;
             time_duration?: number;
+
         }>;
         current_page: number;
         last_page: number;
         per_page: number;
         total: number;
     };
+
     classes: Array<{ id: number; name: string }>;
     sections: Array<{ id: number; name: string }>;
     teachers: Array<{ id: number; name: string }>;
@@ -347,7 +343,6 @@ interface Props {
 
 // Define props
 const props = defineProps<Props>();
-console.log('props', props)
 const sections = ref<Props['sections']>([]);
 const sectionCache = new Map();
 const selectedClass = ref<string | number>('');
@@ -419,12 +414,12 @@ const headers = [
     { text: '#', value: 'id' },
     { text: 'Title', value: 'title' },
     { text: 'Class/Section', value: 'class_section' },
-    { text: 'Subject', value: 'subject' },
-    { text: 'Teacher', value: 'teacher' },
+    { text: 'Subject', value: 'subject_name' },
+    { text: 'Teacher', value: 'teacher_name' },
     { text: 'Duration', value: 'duration' },
     { text: 'Total Marks', value: 'total_marks' },
     { text: 'Questions', value: 'questions_count' },
-    { text: 'Year', value: 'year' },
+    { text: 'Year', value: 'academic_year_name', sortable: false, slotName: 'item-year' },
     { text: 'Status', value: 'published' },
     { text: 'Actions', value: 'actions', sortable: false },
 ];
@@ -433,10 +428,11 @@ const items = computed(() => {
     return props.papers.data.map((paper) => ({
         id: paper.id,
         title: paper.title,
-        class: paper.class,
-        section: paper.section,
-        subject: paper.subject,
-        teacher: paper.teacher,
+        academic_year_name: paper.academic_year_name,
+        class_name: paper.class_name,
+        section_name: paper.section_name,
+        subject_name: paper.subject_name,
+        teacher_name: paper.teacher_name,
         published: paper.published,
         questions_count: paper.questions_count,
         total_marks: paper.total_marks,

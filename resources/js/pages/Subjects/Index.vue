@@ -185,8 +185,7 @@
                             <h3 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Assign Subjects to
                                 Classes</h3>
                             <p class="text-sm text-gray-600 dark:text-gray-400">Select a class to view and manage
-                                subject
-                                assignments</p>
+                                subject assignments</p>
                         </div>
                     </div>
 
@@ -224,7 +223,7 @@
                                     @click="toggleSubject(subject.id)" :class="[
                                         'flex items-center justify-between p-4 rounded-xl border-2 transition-all duration-200 text-left min-h-[60px]',
                                         assignedSubjectsIds.includes(subject.id)
-                                            ? 'border-green-500 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 shadow-sm'
+                                            ? 'border-green-700 bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-200 shadow-sm'
                                             : 'border-gray-200 dark:border-neutral-600 bg-white dark:bg-neutral-800 text-gray-700 dark:text-gray-200 hover:border-gray-300 dark:hover:border-neutral-500'
                                     ]">
                                     <div class="flex-1">

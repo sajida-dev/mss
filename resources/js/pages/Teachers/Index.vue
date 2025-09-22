@@ -370,7 +370,7 @@
 <script setup lang="ts">
 import VueBottomSheet from "@webzlodimir/vue-bottom-sheet";
 import "@webzlodimir/vue-bottom-sheet/dist/style.css";
-import { ref, computed, watch, onMounted, inject } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import { router, Head, usePage, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import BaseDataTable from '@/components/ui/BaseDataTable.vue';
@@ -384,8 +384,7 @@ import SchoolSwitcher from '@/components/ui/SchoolSwitcher.vue';
 import Avatar from '@/components/ui/avatar/Avatar.vue';
 import AvatarImage from '@/components/ui/avatar/AvatarImage.vue';
 import AvatarFallback from '@/components/ui/avatar/AvatarFallback.vue';
-import { Check, CheckCircle, Eye, EyeOff, Filter as FilterIcon, Plus } from 'lucide-vue-next';
-import { nextTick } from 'vue';
+import { CheckCircle, Eye, EyeOff, Filter as FilterIcon, Plus } from 'lucide-vue-next';
 import PasswordResetModal from '@/components/ui/PasswordResetModal.vue';
 import PasswordVerificationModal from "@/components/ui/PasswordVerificationModal.vue";
 import { toast } from "vue3-toastify";
@@ -453,12 +452,7 @@ const serverItemsLength = computed(() => {
     return teachers.value?.total || 0;
 });
 
-const currentServerOptions = computed(() => {
-    return {
-        page: serverOptions.value.page,
-        perPage: serverOptions.value.rowsPerPage,
-    };
-});
+
 const expandedRow = ref<number | null>(null);
 const showDeleteDialog = ref(false);
 const teacherToDelete = ref<number | null>(null);

@@ -20,4 +20,8 @@ class ExamType extends Model
     {
         return $this->hasMany(TermResult::class);
     }
+    public function isFinalTerm()
+    {
+        return $this->is_final_term;
+    }
 }

@@ -402,6 +402,7 @@ class SubjectsController extends Controller
                         'subject_id' => $request->subject_id,
                         'teacher_id' => $teacher->id,
                         'school_id' => $activeSchoolId,
+                        'academic_year_id' => session('active_academic_year_id'),
                         'created_at' => now(),
                         'updated_at' => now()
                     ];

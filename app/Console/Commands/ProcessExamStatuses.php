@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\AcademicYear;
 use App\Services\ResultService;
 use Illuminate\Console\Command;
 use Carbon\Carbon;
@@ -10,6 +11,7 @@ use Modules\Admissions\App\Models\Student;
 use Modules\ResultsPromotions\app\Models\Exam;
 use Modules\ResultsPromotions\app\Models\TermResult;
 use Modules\ResultsPromotions\app\Models\AcademicResult;
+use Modules\ResultsPromotions\app\Models\ExamType;
 
 class ProcessExamStatuses extends Command
 {
@@ -20,52 +22,80 @@ class ProcessExamStatuses extends Command
     {
         $today = Carbon::today();
 
-        // 1. Update Exam Status
-        $exams = Exam::whereIn('status', ['scheduled', 'in_progress'])->get();
+        $exams = Exam::with(['examType', 'class', 'section'])
+            ->whereNotIn('status', ['cancelled', 'completed']) // Skip already completed or cancelled
+            ->get();
+
         foreach ($exams as $exam) {
             $start = Carbon::parse($exam->start_date);
             $end = Carbon::parse($exam->end_date);
 
-            if ($today->lt($start)) continue;
-            elseif ($today->between($start, $end)) {
+            if ($today->lt($start)) {
+                // Exam is still scheduled
+                if ($exam->status !== 'scheduled') {
+                    $exam->update(['status' => 'scheduled']);
+                    $this->info("Exam '{$exam->title}' set to scheduled.");
+                }
+            } elseif ($today->between($start, $end)) {
+                // Exam is in progress
                 if ($exam->status !== 'in_progress') {
                     $exam->update(['status' => 'in_progress']);
-                    $this->info("Exam '{$exam->title}' marked as in_progress.");
+                    $this->info("Exam '{$exam->title}' set to in_progress.");
+                }
+            } elseif ($today->gt($end)) {
+                // After exam period: check if term result is finalized
+                $termResultExists = TermResult::forExamType($exam->exam_type_id)
+                    ->forAcademicYear($exam->academic_year_id)
+                    ->whereHas('exam', function ($q) use ($exam) {
+                        $q->where('class_id', $exam->class_id)
+                            ->when($exam->section_id, fn($sq) => $sq->where('section_id', $exam->section_id));
+                    })
+                    ->exists();
+
+                if ($termResultExists) {
+                    if ($exam->status !== 'completed') {
+                        $exam->update(['status' => 'completed']);
+                        $this->info("Exam '{$exam->title}' marked as completed (term results finalized).");
+                    }
+                } else {
+                    if ($exam->status !== 'result_entery') {
+                        $exam->update(['status' => 'result_entery']);
+                        // Attempt to calculate term result here
+                        try {
+                            DB::transaction(function () use ($exam) {
+                                app(ResultService::class)->finalizeTermResult($exam);
+                                $exam->update(['status' => 'completed']);
+                            });
+
+                            $this->info("Exam '{$exam->title}' moved to result_entery and TermResult updated.");
+                        } catch (\Throwable $e) {
+                            $this->error("Failed to calculate TermResult for exam '{$exam->title}': " . $e->getMessage());
+                        }
+                    }
                 }
             }
         }
 
-        // 2. Finalize Exam & Term Result if all marks entered
-        $exams = Exam::with(['examPapers.results', 'class', 'section', 'examType'])
-            ->where('status', 'in_progress')
-            ->get();
+        if ($today->gt($end)) {
+            $termResultExists = TermResult::exam($exam)
+                ->exists();
 
-        foreach ($exams as $exam) {
-            $studentsCount = Student::where('class_id', $exam->class_id)
-                ->when($exam->section_id, fn($q) => $q->where('section_id', $exam->section_id))
-                ->admitted()
-                ->count();
-
-            $allResultsEntered = true;
-            foreach ($exam->examPapers as $paper) {
-                if ($paper->results->count() < $studentsCount) {
-                    $allResultsEntered = false;
-                    break;
-                }
-            }
-
-            if ($allResultsEntered) {
+            if (!$termResultExists) {
                 DB::transaction(function () use ($exam) {
-                    $exam->update(['status' => 'completed']);
                     app(ResultService::class)->finalizeTermResult($exam);
+                    $exam->update(['status' => 'completed']);
                 });
 
-                $this->info("Finalized exam and term result: {$exam->title}");
+                $this->info("Finalized term result for exam '{$exam->title}'");
+            } else {
+                // Results exist, just mark as completed if not already
+                if ($exam->status !== 'completed') {
+                    $exam->update(['status' => 'completed']);
+                    $this->info("Marked exam '{$exam->title}' as completed (term result already exists)");
+                }
             }
         }
 
-        // 3. Check and Finalize Academic Results (if all term results available)
-        $this->finalizeAcademicResults();
 
         $this->info("Exam processing completed.");
     }
@@ -73,44 +103,49 @@ class ProcessExamStatuses extends Command
     protected function finalizeAcademicResults()
     {
         $students = Student::admitted()->get();
+        $academicYears = AcademicYear::all(); // or just active year if applicable
 
         foreach ($students as $student) {
-            $termResults = TermResult::where('student_id', $student->id)
-                ->whereNotNull('overall_percentage') // Ensure it's finalized
-                ->orderBy('exam_type_id') // Adjust ordering based on your term system
-                ->get();
+            foreach ($academicYears as $year) {
+                $termResults = TermResult::student($student)
+                    ->academicYear($year)
+                    ->varified()
+                    ->get();
 
-            if ($termResults->count() < 3) continue; // Skip if not all terms calculated
+                $termTypes = $termResults->pluck('exam_type_id')->unique();
+                $expectedTermTypes = ExamType::pluck('id')->toArray();
 
-            $academicYear = $termResults->first()->academic_year;
+                $hasFinalTerm = ExamType::isFinalTerm()
+                    ->whereIn('id', $termTypes)
+                    ->exists();
 
-            $percentages = $termResults->pluck('overall_percentage');
-            $term1 = $percentages[0];
-            $term2 = $percentages[1];
-            $term3 = $percentages[2];
+                // Proceed only if all expected terms and final term are included
+                if (count($termTypes) === count($expectedTermTypes) && $hasFinalTerm) {
+                    $overall = round($termResults->avg('overall_percentage'), 2);
+                    $totalMarks = $termResults->sum('total_marks');
+                    $obtainedMarks = $termResults->sum('obtained_marks');
+                    $grade = $this->getGrade($overall);
+                    $promotionStatus = $overall >= 40 ? 'promoted' : 'detained';
 
-            $overall = round(($term1 + $term2 + $term3) / 3, 2);
-            $grade = $this->getGrade($overall);
-            $promotionStatus = $overall >= 40 ? 'promoted' : 'detained';
+                    AcademicResult::updateOrCreate(
+                        [
+                            'student_id' => $student->id,
+                            'academic_year_id' => $year->id,
+                            'class_id' => $student->class_id,
+                            'section_id' => $student->section_id,
+                        ],
+                        [
+                            'total_marks' => $totalMarks,
+                            'obtained_marks' => $obtainedMarks,
+                            'overall_percentage' => $overall,
+                            'final_grade' => $grade,
+                            'promotion_status' => $promotionStatus,
+                        ]
+                    );
 
-            AcademicResult::updateOrCreate(
-                [
-                    'student_id' => $student->id,
-                    'academic_year' => $academicYear,
-                    'class_id' => $student->class_id,
-                    'section_id' => $student->section_id,
-                ],
-                [
-                    'term1_percentage' => $term1,
-                    'term2_percentage' => $term2,
-                    'term3_percentage' => $term3,
-                    'overall_percentage' => $overall,
-                    'final_grade' => $grade,
-                    'promotion_status' => $promotionStatus,
-                ]
-            );
-
-            $this->info("Academic result finalized for student: {$student->name}");
+                    $this->info("Academic result finalized for {$student->name} ({$year->name})");
+                }
+            }
         }
     }
 

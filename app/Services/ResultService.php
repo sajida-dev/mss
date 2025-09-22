@@ -15,60 +15,56 @@ class ResultService
      */
     public function finalizeTermResult(Exam $exam)
     {
-        // Step 1: Get all students for this class + section
         $students = Student::where('class_id', $exam->class_id)
-            ->when($exam->section_id, fn($q) => $q->where('section_id', $exam->section_id))
             ->admitted()
             ->get();
 
         foreach ($students as $student) {
-            $examPapers = $exam->examPapers;
+            // Filter results for this exam
+            $results = $student->results->where('examPaper.exam_id', $exam->id);
 
-            $results = ExamResult::whereIn('exam_paper_id', $examPapers->pluck('id'))
-                ->where('student_id', $student->id)
-                ->get();
+            if ($results->isEmpty()) continue;
 
-            $totalObtained = $results->sum('obtained_marks');
-            $totalMax = $results->sum('total_marks');
+            $obtained = $results->sum('obtained_marks');
+            $total = $results->sum('total_marks');
+            $percentage = round(($obtained / $total) * 100, 2);
+            $grade = $this->getGrade($percentage);
+            $passed = $results->where('status', 'pass')->count();
+            $failed = $results->where('status', 'fail')->count();
+            $subjectCount = $results->count();
+            $gradePoints = $this->calculateGPA($percentage);
 
-            $subjectsPassed = $results->where('status', 'pass')->count();
-            $subjectsFailed = $results->where('status', 'fail')->count();
-
-            $percentage = $totalMax > 0 ? round(($totalObtained / $totalMax) * 100, 2) : 0;
-
-            $termStatus = $subjectsFailed === 0 ? 'pass' : 'fail';
-
-            // Save or update term result
             TermResult::updateOrCreate([
                 'student_id' => $student->id,
                 'exam_id' => $exam->id,
-            ], [
                 'exam_type_id' => $exam->exam_type_id,
-                'academic_year' => $exam->academic_year,
-                'total_subjects' => $examPapers->count(),
-                'total_marks_obtained' => $totalObtained,
-                'total_maximum_marks' => $totalMax,
+                'academic_year_id' => $exam->academic_year_id,
+
+            ], [
+                'total_subjects' => $subjectCount,
+                'obtained_marks' => $obtained,
+                'total_marks' => $total,
                 'overall_percentage' => $percentage,
-                'subjects_passed' => $subjectsPassed,
-                'subjects_failed' => $subjectsFailed,
-                'term_status' => $termStatus,
-                'grade' => $this->getGrade($percentage),
-                'grade_points' => $this->calculateGPA($percentage),
+                'subjects_passed' => $passed,
+                'subjects_failed' => $failed,
+                'grade_points' => $gradePoints,
+                'grade' => $grade,
+                'term_status' => $percentage >= 40 ? 'pass' : 'fail',
             ]);
         }
     }
 
+
     /**
      * Convert percentage to GPA
      */
-    protected function calculateGPA($percentage): float
+    protected function calculateGPA(float $percentage): float
     {
-        if ($percentage >= 90) return 4.0;
-        if ($percentage >= 80) return 3.7;
-        if ($percentage >= 70) return 3.0;
-        if ($percentage >= 60) return 2.0;
-        if ($percentage >= 50) return 1.0;
-        return 0.0;
+        if ($percentage < 50) {
+            return 0.0;
+        }
+        $gpa = 2.0 + (($percentage - 50) / 40) * 2.0;
+        return round(min($gpa, 4.0), 2);
     }
 
     /**

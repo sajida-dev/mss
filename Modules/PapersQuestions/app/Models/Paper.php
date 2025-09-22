@@ -2,6 +2,7 @@
 
 namespace Modules\PapersQuestions\App\Models;
 
+use App\Models\AcademicYear;
 use App\Traits\BelongsToAcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,6 +36,14 @@ class Paper extends Model
         'session',
         'exam_date',
         'instructions',
+    ];
+
+    protected $appends = [
+        'class_name',
+        'academic_year_name',
+        'teacher_name',
+        'section_name',
+        'subject_name',
     ];
 
     protected $casts = [
@@ -79,5 +88,33 @@ class Paper extends Model
     public function getTotalMarksAttribute()
     {
         return $this->questions()->sum('marks');
+    }
+
+    public function academicYear(): BelongsTo
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
+    }
+    public function getClassNameAttribute()
+    {
+        return $this->class ? $this->class->name : null;
+    }
+
+    public function getAcademicYearNameAttribute()
+    {
+        return $this->academicYear ? $this->academicYear->name : null;
+    }
+
+    public function getSectionNameAttribute()
+    {
+        return $this->section?->name;
+    }
+
+    public function getTeacherNameAttribute()
+    {
+        return $this->teacher?->user?->name;
+    }
+    public function getSubjectNameAttribute()
+    {
+        return $this->subject?->name;
     }
 }

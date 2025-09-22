@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\ResultsPromotions\app\Models\Exam;
 
 class AcademicYear extends Model
 {
@@ -23,5 +24,10 @@ class AcademicYear extends Model
     public static function current()
     {
         return static::active()->first();
+    }
+
+    public function exams()
+    {
+        return $this->hasMany(Exam::class, 'academic_year_id');
     }
 }
