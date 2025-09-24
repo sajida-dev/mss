@@ -15,9 +15,18 @@ class StoreFeeRequest extends FormRequest
     {
         return [
             'school_id' => ['required', 'exists:schools,id'],
-            'class_id' => ['required', 'exists:classes,id'],
+            'apply_to' => ['required', 'in:class,student'],
+
+            'class_id' => ['required_if:apply_to,class', 'nullable', 'exists:classes,id'],
+            'registration_number' => ['required_if:apply_to,student', 'nullable', 'exists:students,registration_number'],
+
+            'student_ids' => ['nullable', 'array'],
+            'student_ids.*' => ['integer', 'exists:students,id'],
+
             'due_date' => ['required', 'date', 'after_or_equal:today'],
             'type' => ['required', 'in:admission,monthly,papers,installments'],
+            'fine_amount' => ['numeric', 'min:0.01', 'max:999999.99'],
+            'fine_due_date' => ['date', 'after_or_equal:today'],
 
             'fee_items' => ['required', 'array', 'min:1'],
             'fee_items.*.type' => ['required', 'in:tuition,library,security,admission,sports,papers,transport'],
@@ -31,7 +40,6 @@ class StoreFeeRequest extends FormRequest
             'school_id.required' => 'School is required.',
             'school_id.exists' => 'Selected school does not exist.',
 
-            'class_id.required' => 'Class is required.',
             'class_id.exists' => 'Selected class does not exist.',
 
             'due_date.required' => 'Due date is required.',

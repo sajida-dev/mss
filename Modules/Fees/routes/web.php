@@ -13,6 +13,7 @@ Route::middleware(['auth', 'set.active.school', 'verified', 'team.permission'])-
         Route::get('/{fee}/create', 'create')->name('installments.create');
         Route::post('/', 'store')->name('installments.store');
         Route::post('/{installment}/pay', 'markAsPaid')->name('installments.pay');
+        Route::get('/{installment}/voucher', 'voucher')->name('installments.voucher');
     });
     Route::post('/fees/{fee}/mark-as-paid', [FeesController::class, 'markAsPaid'])->name('fees.markAsPaid');
     Route::get('/fees/{fee}/voucher', [FeesController::class, 'voucher'])

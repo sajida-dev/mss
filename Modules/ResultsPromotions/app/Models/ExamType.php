@@ -20,8 +20,8 @@ class ExamType extends Model
     {
         return $this->hasMany(TermResult::class);
     }
-    public function isFinalTerm()
+    public function scopeIsFinalTerm($query)
     {
-        return $this->is_final_term;
+        return $query->where('is_final_term', true);
     }
 }

@@ -15,7 +15,7 @@ class ResultService
      */
     public function finalizeTermResult(Exam $exam)
     {
-        $students = Student::class($exam->class_id)
+        $students = Student::forClass($exam->class_id)
             ->admitted()
             ->get();
 

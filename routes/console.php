@@ -11,4 +11,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 Schedule::command(ProcessExamStatuses::class)->everyMinute();
-Schedule::command(CalculateAcademicResults::class)->everyMinute();
+// Schedule::command(CalculateAcademicResults::class)->everyMinute();

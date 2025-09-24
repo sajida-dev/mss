@@ -16,6 +16,7 @@ use Modules\Fees\App\Http\Requests\StoreFeeRequest;
 use Modules\Fees\App\Http\Requests\UpdateFeeRequest;
 use Modules\Fees\App\Models\FeeItem;
 use Modules\Fees\Http\Requests\StorePaidVoucherRequest;
+use Modules\Fees\Models\FeeInstallment;
 
 class FeesController extends Controller
 {
@@ -86,7 +87,7 @@ class FeesController extends Controller
      */
     public function create(Request $request)
     {
-        $schoolId = $request->input('school_id') ?: session('active_school_id');
+        $schoolId =  session('active_school_id');
 
         // Get schools and classes for the form
         $schools = School::orderBy('name')->get(['id', 'name']);
@@ -96,7 +97,7 @@ class FeesController extends Controller
         // If a school is selected, get its classes
         if ($schoolId) {
             $school = School::with(['classes' => function ($q) {
-                $q->orderBy('name');
+                $q->orderBy('id');
             }])->find($schoolId);
             $classes = $school ? $school->classes : collect();
 
@@ -131,76 +132,107 @@ class FeesController extends Controller
      */
     public function store(StoreFeeRequest $request)
     {
+        $validated = $request->validated();
+
         try {
-            return DB::transaction(function () use ($request) {
-                $validated = $request->validated();
+            return DB::transaction(function () use ($validated) {
 
-                // Ensure fee_items is an array and has valid entries
                 $feeItems = $validated['fee_items'] ?? [];
-
                 if (empty($feeItems)) {
                     return back()->withErrors(['fee_items' => 'At least one fee item is required.'])->withInput();
                 }
 
-                // Calculate total amount from fee items
-                $totalAmount = collect($feeItems)->sum(function ($item) {
-                    return floatval($item['amount']);
-                });
-
-                // Get all admitted students in the selected school and class
-                $students = Student::where('school_id', $validated['school_id'])
-                    ->where('class_id', $validated['class_id'])
-                    ->where('status', 'admitted')
-                    ->get();
-
-                if ($students->isEmpty()) {
-                    return back()->withErrors([
-                        'class_id' => 'No admitted students found in the selected class. Please ensure there are admitted students before creating fees.'
-                    ])->withInput();
-                }
-
+                $totalAmount = collect($feeItems)->sum(fn($item) => floatval($item['amount']));
                 $createdFees = [];
 
-                foreach ($students as $student) {
-                    // Create the main fee entry per student
-                    $fee = Fee::create([
-                        'student_id' => $student->id,
-                        'class_id' => $validated['class_id'],
-                        'type' => $validated['type'], // e.g., admission/monthly/etc
-                        'amount' => $totalAmount,
-                        'status' => 'unpaid',
-                        'due_date' => Carbon::parse($validated['due_date']),
-                    ]);
-
-                    // Create associated fee items for each student
-                    foreach ($feeItems as $item) {
-                        Log::info('Creating fee item', [
-                            'fee_id' => $fee->id,
-                            'type' => $item['type'],
-                            'amount' => $item['amount'],
-                        ]);
-
-                        $fee->feeItems()->create([
-                            'type' => $item['type'],
-                            'amount' => $item['amount'],
-                        ]);
+                // 🔹 Case 1: Apply to whole class (optionally subset via student_ids)
+                if ($validated['apply_to'] === 'class') {
+                    if (!empty($validated['student_ids'])) {
+                        $students = Student::where('school_id', $validated['school_id'])
+                            ->where('class_id', $validated['class_id'])
+                            ->whereIn('id', $validated['student_ids'])
+                            ->where('status', 'admitted')
+                            ->get();
+                    } else {
+                        $students = Student::where('school_id', $validated['school_id'])
+                            ->where('class_id', $validated['class_id'])
+                            ->where('status', 'admitted')
+                            ->get();
                     }
 
-                    $createdFees[] = $fee;
+                    if ($students->isEmpty()) {
+                        return back()->withErrors([
+                            'class_id' => 'No admitted students found in the selected class.'
+                        ])->withInput();
+                    }
+
+                    foreach ($students as $student) {
+                        $fee = $this->createFeeForStudent($student->id, $validated, $feeItems, $totalAmount);
+                        $createdFees[] = $fee;
+                    }
+
+                    return redirect()->route('fees.index')
+                        ->with('success', "Fees created successfully for {$students->count()} students.");
                 }
-                return redirect()->route('fees.index')
-                    ->with('success', "Fees created successfully for {$students->count()} students.");
-            }, 5); // Retry transaction up to 5 times in case of deadlock
+
+                // 🔹 Case 2: Apply to single student (look up by registration_number)
+                if ($validated['apply_to'] === 'student') {
+
+                    // NOTE: we're using registration_number (frontend sends registration_number)
+                    $student = Student::where('school_id', $validated['school_id'])
+                        ->where('registration_number', $validated['registration_number'])
+                        ->where('status', 'admitted')
+                        ->first();
+                    $validated['class_id'] = $student->class_id;
+                    if (!$student) {
+                        return back()->withErrors([
+                            'registration_number' => 'The selected registration number is not valid or student not admitted.'
+                        ])->withInput();
+                    }
+
+                    $fee = $this->createFeeForStudent($student->id, $validated, $feeItems, $totalAmount);
+                    return redirect()->route('fees.index')
+                        ->with('success', "Fee created successfully for student {$student->name}.");
+                }
+
+                return back()->withErrors(['apply_to' => 'Invalid apply_to option'])->withInput();
+            }, 5);
         } catch (\Exception $e) {
             Log::error('Error creating fees:', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString(),
             ]);
-
-            return back()->withErrors(['error' => 'Failed to create fees. Please try again.'])->withInput();
+            return back()->withErrors(['error' => 'Failed to create fees. Please try again.' . $e->getMessage()])->withInput();
         }
     }
 
+    /**
+     * Helper method to create fee + items for a student
+     */
+    private function createFeeForStudent($studentId, array $validated, array $feeItems, float $totalAmount)
+    {
+        $voucher_number = 'VCH' . strtoupper(uniqid());
+        $fee = Fee::UpdateOrCreate([
+            'student_id' => $studentId,
+            'class_id'   => $validated['class_id'] ?? null,
+            'type'       => $validated['type'],
+            'amount'     => $totalAmount,
+            'status'     => 'unpaid',
+            'due_date'   => Carbon::parse($validated['due_date']),
+            'fine_amount' => $validated['fine_amount'] ?? 0,
+            'fine_due_date' => $validated['fine_due_date'] ?? null,
+            'voucher_number' => $voucher_number,
+        ]);
+
+        foreach ($feeItems as $item) {
+            $fee->feeItems()->create([
+                'type'   => $item['type'],
+                'amount' => $item['amount'],
+            ]);
+        }
+
+        return $fee;
+    }
 
     /**
      * Show the specified resource.
@@ -228,7 +260,8 @@ class FeesController extends Controller
                 'id' => $fee->id,
                 'type' => $fee->type,
                 'due_date' => $fee->due_date,
-                // 'due_date' => $fee->due_date->format('Y-m-d'),
+                'fine_amount' => $fee->fine_amount,
+                'fine_due_date' => $fee->fine_due_date,
                 'school_id' => $schoolId,
                 'class_id' => $classId,
                 'fee_items' => $fee->feeItems->map(fn($item) => [
@@ -273,7 +306,8 @@ class FeesController extends Controller
                     'type' => $validated['type'],
                     'amount' => $totalAmount,
                     'due_date' => \Carbon\Carbon::parse($validated['due_date']),
-                    'description' => $validated['description'] ?? null,
+                    'fine_amount' => $validated['fine_amount'] ?? 0,
+                    'fine_due_date' => $validated['fine_due_date'] ?? null,
                 ]);
 
                 // Delete existing fee items

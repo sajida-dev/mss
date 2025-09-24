@@ -60,7 +60,7 @@ class Fee extends Model
 
     function getFineAmountInWordsAttribute()
     {
-        return $this->amountToWords($this->attributes['fine_amount']);
+        return $this->amountToWords($this->attributes['amount'] + $this->attributes['fine_amount']);
     }
 
     function getStudentNameAttribute()

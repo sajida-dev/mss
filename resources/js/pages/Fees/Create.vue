@@ -6,7 +6,8 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import Button from '@/components/ui/button/Button.vue';
 import TextInput from '@/components/form/TextInput.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
-import { Trash } from 'lucide-vue-next';
+import { Book, BookOpen, GraduationCap, Trash } from 'lucide-vue-next';
+import { watch } from 'vue';
 
 interface Props {
     schools: { id: number; name: string }[];
@@ -31,10 +32,15 @@ const form = useForm({
             amount: '',
         },
     ],
+    registration_number: '',
+    apply_to: 'class',
     type: '',
     due_date: '',
     school_id: props.selectedSchoolId ? String(props.selectedSchoolId) : '',
     class_id: props.selectedClassId ? String(props.selectedClassId) : '',
+    fine_amount: '',
+    fine_due_date: '',
+    student_ids: [] as number[],
 
 });
 
@@ -92,6 +98,17 @@ function submitForm() {
             toast.error('Please fill in all fee item types and positive amounts.');
         }
     });
+
+    // Validate class/student selection
+    if (form.apply_to === 'class' && !form.class_id) {
+        valid = false;
+        toast.error('Please select a class.');
+    }
+    if (form.apply_to === 'student' && !form.registration_number) {
+        valid = false;
+        toast.error('Please select a student.');
+    }
+
     if (!valid) return;
 
     form.post(route('fees.store'), {
@@ -111,6 +128,16 @@ function submitForm() {
         },
     });
 }
+
+watch(
+    () => props.students,
+    (students) => {
+        if (form.apply_to === 'class') {
+            form.student_ids = students.map((s) => s.id);
+        }
+    },
+    { immediate: true } // run once on mount
+);
 </script>
 
 <template>
@@ -121,28 +148,58 @@ function submitForm() {
                     <h1 class="text-2xl font-bold text-gray-900 dark:text-gray-100">Create New Fee</h1>
                     <Button variant="outline" @click="goBack">Back to Fees</Button>
                 </div>
-
                 <form @submit.prevent="submitForm" class="space-y-6">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <!-- School -->
-                        <SelectInput id="school_id" v-model="form.school_id" label="School"
-                            :options="props.schools.map((s) => ({ label: s.name, value: String(s.id) }))"
-                            placeholder="Select School" :error="errors.school_id" @change="onSchoolChange" />
+                    <div class="flex gap-4 mb-6">
+                        <!-- Whole Class -->
+                        <div class="flex-1 cursor-pointer p-4 border rounded-lg shadow-sm text-center transition
+           hover:shadow-md" :class="form.apply_to === 'class' ? 'bg-blue-100 border-blue-500' : 'bg-white'"
+                            @click="form.apply_to = 'class'">
+                            <h3 class="font-semibold text-lg flex justify-center items-center gap-2">
+                                <BookOpen :class="form.apply_to === 'class' ? 'text-green-800' : 'text-gray-900'"
+                                    class="w-5 h-5" /> <span> Whole Class</span>
+                            </h3>
+                            <p class="text-sm text-gray-600">Apply fee to all students of a class</p>
+                        </div>
 
+                        <!-- Single Student -->
+                        <div class="flex-1 cursor-pointer p-4 border rounded-lg shadow-sm text-center transition
+           hover:shadow-md" :class="form.apply_to === 'student' ? 'bg-blue-100 border-blue-500' : 'bg-white'"
+                            @click="form.apply_to = 'student'">
+                            <h3 class="font-semibold text-lg flex justify-center items-center gap-2">
+                                <GraduationCap :class="form.apply_to === 'student' ? 'text-green-800' : 'text-gray-900'"
+                                    class="w-5 h-5" />
+                                <span>
+                                    Single Student</span>
+                            </h3>
+                            <p class="text-sm text-gray-600">Apply fee only to one student</p>
+                        </div>
+                    </div>
+
+
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <!-- fee type -->
                         <SelectInput id="fee_type" v-model="form.type" label="Fee Type"
                             :options="Object.entries(types).map(([value, label]) => ({ label, value }))"
                             placeholder="Select Fee Type" :error="errors.type" />
                         <!-- Class -->
-                        <SelectInput id="class_id" v-model="form.class_id" label="Class"
-                            :options="props.classes.map((c) => ({ label: c.name, value: String(c.id) }))"
+                        <SelectInput v-if="form.apply_to === 'class'" id="class_id" v-model="form.class_id"
+                            label="Class" :options="props.classes.map((c) => ({ label: c.name, value: String(c.id) }))"
                             placeholder="Select Class" :error="errors.class_id" :disabled="!form.school_id"
                             @change="onClassChange" />
+
+                        <!-- student_id -->
+                        <TextInput v-if="form.apply_to === 'student'" id="registration_number"
+                            v-model="form.registration_number" label="Registration No" type="text"
+                            placeholder="Registration No" :error="errors.registration_number" />
                         <!-- Due Date -->
                         <TextInput id="due_date" v-model="form.due_date" label="Due Date" type="date" :min="today"
                             :error="errors.due_date" />
-
-
+                        <!-- Fine Amount -->
+                        <TextInput id="fine_amount" v-model="form.fine_amount" label="Fine Amount" type="number"
+                            :min="0" :step="0.01" :error="errors.fine_amount" placeholder="Rs. 500" />
+                        <!-- Fine Due Date -->
+                        <TextInput id="fine_due_date" v-model="form.fine_due_date" label="Fine Due Date" type="date"
+                            :min="today" :error="errors.fine_due_date" />
                     </div>
                     <div class="bg-gray-50 dark:bg-neutral-800 shadow rounded-lg p-4">
                         <label class="block mb-4 text-gray-700 dark:text-gray-200 font-medium">Fee Items</label>
@@ -207,20 +264,24 @@ function submitForm() {
                     </div>
 
                     <!-- Students Preview -->
-                    <div v-if="props.students.length" class="bg-blue-100 dark:bg-blue-800 rounded-lg p-4">
+                    <div v-if="props.students.length > 0 && form.apply_to === 'class'"
+                        class="bg-blue-100 dark:bg-blue-800 rounded-lg p-4">
                         <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
                             Total Students in Selected Class ({{ props.students.length }})
                         </h3>
                         <div class="max-h-40 overflow-y-auto">
                             <div class="grid grid-cols-3 sm:grid-cols-1 gap-2">
                                 <div v-for="student in props.students" :key="student.id"
-                                    class="text-sm text-gray-600 dark:text-gray-300">
-                                    {{ student.id }} : {{ student.name }} (Reg# {{ student.registration_number }})
+                                    class="text-sm flex justify-left items-center gap-3 text-gray-600 dark:text-gray-300">
+                                    <input type="checkbox" checked v-model="form.student_ids" :value="student.id" />
+                                    <span>{{ student.id }} : {{ student.name }} (Reg# {{ student.registration_number
+                                    }})</span>
+
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div v-else
+                    <div v-else-if="form.apply_to === 'class'"
                         class="text-center py-4 px-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
                         <div class="text-yellow-800 dark:text-yellow-200 font-medium mb-1">⚠️ No Students Found</div>
                         <div class="text-yellow-700 dark:text-yellow-300 text-sm">
@@ -232,7 +293,8 @@ function submitForm() {
                     <!-- Submit Buttons -->
                     <div class="flex justify-end space-x-3">
                         <Button type="button" variant="outline" @click="goBack">Cancel</Button>
-                        <Button type="submit" :disabled="form.processing || !props.students.length">
+                        <Button type="submit"
+                            :disabled="form.processing || (form.apply_to === 'class' ? !props.students.length : !form.registration_number)">
                             <span v-if="form.processing">Creating...</span>
                             <span v-else-if="!props.students.length">No Students Available</span>
                             <span v-else>Create Fee</span>

@@ -88,9 +88,7 @@
                     <img :src="row.profile_photo_url" alt="Profile Photo"
                         class="w-10 h-10 rounded-full object-cover border" />
                 </template>
-                <template #toolbar>
 
-                </template>
                 <template #item-actions="row">
                     <button v-can="'update-admissions'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
@@ -147,7 +145,7 @@
                                             row.class_shift }}
                                     </p>
                                     <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
-                                        <School class="w-4 h-4" /> School: {{ row.school }}
+                                        <School class="w-4 h-4" /> School: {{ row.school_name }}
                                     </p>
                                 </div>
                             </div>

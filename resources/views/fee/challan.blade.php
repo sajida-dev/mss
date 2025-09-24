@@ -119,16 +119,12 @@
                 <p><b>University of Education, Lahore</b></p>
                 <p><b>Date:</b> <span class="underline">{{ now()->format('F j, Y') }}</span></p>
                 <p><b>Challan#:</b> <span class="underline">{{ $fee->voucher_number }}</span></p>
-                {{-- <p><b>1 Bill No.:</b> <span class="underline">{{ $fee->bill_no }}</span></p> --}}
                 <p><b>Name:</b> <span class="underline">{{ $fee->student_name }}</span></p>
                 <p><b>School:</b> <span class="underline">{{ $fee->student->school_name }}</span></p>
                 <p><b>Class:</b> <span class="underline">{{ $fee->student->class_name }}</span></p>
-                <p><b>Section:</b> {{ $fee->student->section_name ?? 'N/A' }} &nbsp;&nbsp; <b>Quota:</b>
-                    <span class="underline">{{ $fee->student->quota }}</span>
+                <p><b>Section:</b> {{ $fee->student->section_name ?? 'N/A' }} &nbsp;&nbsp; <b>Shift:</b>
+                    <span class="underline">{{ $fee->student->class_shift }}</span>
                 </p>
-                {{-- <p><b>Semester:</b> <span class="underline">{{ $fee->semester }}</span> &nbsp;&nbsp;
-                    <b>Session:</b> <span class="underline">{{ $fee->student->session }}</span>
-                </p> --}}
                 <p><b>Student Id:</b> <span class="underline">{{ $fee->student->registration_number }}</span></p>
                 <p><b>Due Date:</b> <span class="underline">{{ $fee->due_date }}</span></p>
                 <p><b>Fine Due Date:</b> <span class="underline">{{ $fee->fine_due_date }}</span></p>
@@ -160,7 +156,7 @@
                     </tr>
                     <tr>
                         <td colspan="2">Amount (after due date):</td>
-                        <td>{{ number_format($fee->total_amount + $fee->fine_amount) }}</td>
+                        <td>{{ number_format($fee->amount + $fee->fine_amount) }}</td>
                     </tr>
                     <tr>
                         <td colspan="3">{{ $fee->fine_amount_in_words }}</td>

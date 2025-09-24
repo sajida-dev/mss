@@ -112,7 +112,7 @@ class TermResult extends Model
         return $query->where('student_id', $studentId);
     }
 
-    public function scopeForAcademicYear($query, $academicYearId)
+    public function scopeAcademicYear($query, $academicYearId)
     {
         return $query->where('academic_year_id', $academicYearId);
     }

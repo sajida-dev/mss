@@ -17,6 +17,9 @@ class UpdateFeeRequest extends FormRequest
             'class_id' => ['required', 'exists:classes,id'],
             'due_date' => ['required', 'date', 'after_or_equal:today'],
             'type' => ['required', 'in:admission,monthly,papers,installments'],
+            'fine_amount' => ['numeric', 'min:0.01', 'max:999999.99'],
+            'fine_due_date' => ['date', 'after_or_equal:today'],
+
             'fee_items' => ['required', 'array', 'min:1'],
             'fee_items.*.type' => ['required', 'in:tuition,library,security,admission,sports,papers,transport'],
             'fee_items.*.amount' => ['required', 'numeric', 'min:0.01', 'max:999999.99'],

@@ -236,7 +236,7 @@
                                     class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.student_name
-                                        }}
+                                    }}
                                     </h2>
                                     <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
                                         <ClipboardList class="w-4 h-4" /> Registration #: {{
@@ -256,10 +256,9 @@
                                 </div>
                             </div>
                             <div class="flex flex-col sm:flex-row gap-2 mt-4 md:mt-0">
-
-
-                                <Button v-can="'print-vouchers'" variant="default"
-                                    class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
+                                <Button v-can="'print-vouchers'"
+                                    v-if="row.status === 'unpaid' && row.due_date > today && row.type !== 'installments'"
+                                    variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
                                     @click="printVoucher(row.id)">
                                     <Printer class="w-4 h-4 mr-2" /> Print Voucher
                                 </Button>
@@ -464,6 +463,8 @@ interface Props {
         student_id?: string;
     };
 }
+
+const today = new Date().toISOString().split('T')[0];
 const expandedRow = ref<number | null>(null);
 function toggleRowExpansion(row: any) {
     expandedRow.value = expandedRow.value === row.id ? null : row.id;
@@ -477,13 +478,48 @@ const breadcrumbItems: BreadcrumbItem[] = [
         href: route('fees.index'),
     },
 ];
-function printVoucher(feeId: number) {
-    const url = route('fees.voucher', { id: feeId }); // Laravel route('fee.print')
-    const printWindow = window.open(url, "_blank"); // open Blade challan in new tab
-    printWindow?.focus();
-    printWindow?.addEventListener("load", () => {
-        printWindow.print();
-    });
+function printVoucher(installmentId: number) {
+    const url = route('installments.voucher', { id: installmentId });
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load voucher.");
+            }
+            return response.text();
+        })
+        .then(htmlContent => {
+            const printFrame = document.createElement("iframe");
+            printFrame.style.position = "fixed";
+            printFrame.style.right = "0";
+            printFrame.style.bottom = "0";
+            printFrame.style.width = "0";
+            printFrame.style.height = "0";
+            printFrame.style.border = "0";
+            printFrame.style.visibility = "hidden";
+
+            document.body.appendChild(printFrame);
+
+            const doc = printFrame.contentWindow?.document;
+            if (doc) {
+                doc.open();
+                doc.write(htmlContent);
+                doc.close();
+
+                printFrame.onload = () => {
+                    printFrame.contentWindow?.focus();
+                    printFrame.contentWindow?.print();
+
+                    // Clean up after printing
+                    setTimeout(() => {
+                        document.body.removeChild(printFrame);
+                    }, 1000);
+                };
+            }
+        })
+        .catch(error => {
+            console.error("Printing failed:", error);
+            alert("Failed to print voucher. Please try again.");
+        });
 }
 
 const myBottomSheet = ref<InstanceType<typeof VueBottomSheet>>()
@@ -544,7 +580,7 @@ const items = computed(() => {
         due_date: fee.due_date,
         fine_amount: fee.fine_amount,
         fine_due_date: fee.fine_due_date,
-        paid_at: fee.paid_at ?? 'N/A',
+        paid_at: fee.paid_at ?? '-',
         fee: fee,
     }));
 });

@@ -56,7 +56,6 @@
                                 <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
                                     <span v-if="term.term_result">{{ term.term_result.obtained_marks }} / {{
                                         term.term_result.total_marks }}</span>
-
                                 </td>
                                 <th
                                     class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
@@ -64,7 +63,6 @@
                                 <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
                                     <span v-if="term.term_result">{{
                                         term.term_result.overall_percentage }}%</span>
-
                                 </td>
                             </tr>
                             <tr>
@@ -79,7 +77,6 @@
                                     Remarks</th>
                                 <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
                                     <span v-if="term.term_result">{{ term.term_result.remarks }}</span>
-
                                 </td>
                             </tr>
                         </tbody>
@@ -91,8 +88,9 @@
         <!-- Academic Result Summary -->
         <div v-if="student.grouped_terms.all_terms_completed && student.grouped_terms.academic_result"
             class="mt-6 border-t pt-4">
-            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Academic Year Summary</h3>
-            <table>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">Academic Year Summary ({{
+                student.grouped_terms.academic_result.academic_year_name }})</h3>
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-neutral-700 border">
                 <tbody>
                     <tr>
                         <th
@@ -100,16 +98,15 @@
                             Total Marks</th>
                         <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
                             <span>{{
-                                student.grouped_terms.academic_result.promotion_status }}</span>
-
+                                student.grouped_terms.academic_result.obtained_marks }} /{{
+                                    student.grouped_terms.academic_result.total_marks }}</span>
                         </td>
                         <th
                             class="px-4 py-2 text-left text-xs font-medium bg-gray-50 dark:bg-neutral-800 text-gray-500 dark:text-gray-400 uppercase">
                             Percentage</th>
                         <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
                             <span> {{
-                                student.grouped_terms.academic_result.overall_percentage }}%%</span>
-
+                                student.grouped_terms.academic_result.overall_percentage }}%</span>
                         </td>
                     </tr>
                     <tr>
@@ -126,17 +123,11 @@
                         <td colspan="2" class="px-4 py-2 text-sm text-gray-900 dark:text-gray-100">
                             <span>{{
                                 student.grouped_terms.academic_result.promotion_status }}</span>
-
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Overall Percentage:</strong> {{
-                student.grouped_terms.academic_result.overall_percentage }}%</p>
-            <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Final Grade:</strong> {{
-                student.grouped_terms.academic_result.final_grade }}</p>
-            <p class="text-sm text-gray-700 dark:text-gray-300"><strong>Promotion Status:</strong> {{
-                student.grouped_terms.academic_result.promotion_status }}</p>
+
         </div>
     </div>
 </template>

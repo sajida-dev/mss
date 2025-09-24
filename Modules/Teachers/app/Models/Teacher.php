@@ -37,7 +37,7 @@ class Teacher extends Model
 
     public function getUserNameAttribute()
     {
-        return $this->user->name;
+        return $this->user?->name;
     }
 
     public function getSchoolNameAttribute()

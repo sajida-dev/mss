@@ -157,10 +157,13 @@ class ExamResultController extends Controller
                     $ar = $student->academicResults->first();
                     if ($ar) {
                         $grouped['academic_result'] = [
+                            'obtained_marks' => $ar->obtained_marks,
+                            'total_marks' => $ar->total_marks,
                             'overall_percentage' => $ar->overall_percentage,
                             'cumulative_gpa' => $ar->cumulative_gpa,
                             'final_grade' => $ar->final_grade,
                             'promotion_status' => $ar->promotion_status,
+                            'academic_year_name' => $ar->academicYear_name,
                         ];
                     }
                 }
