@@ -89,7 +89,7 @@
     --foreground: hsl(0 0% 3.9%);
     --card: hsla(274, 93%, 57%, 0.632);
     --card-foreground: hsl(0 0% 3.9%);
-    --popover: hsla(274, 93%, 57%, 0.632);
+    --popover: hsl(0 0% 100%);
     --popover-foreground: hsl(0 0% 3.9%);
     --primary: hsl(0 0% 9%);
     --primary-foreground: hsl(0 0% 98%);
@@ -117,7 +117,7 @@
     --sidebar-accent: hsla(274, 93%, 57%, 0.632);
     --sidebar-accent-foreground: hsl(0, 0%, 100%);
     --sidebar-border: hsl(0 0% 91%);
-    --sidebar-ring: hsl(217.2 91.2% 59.8%);
+    --sidebar-ring: hsl(274, 73%, 32%);
     --sidebar: hsl(274, 73%, 32%);
 }
 

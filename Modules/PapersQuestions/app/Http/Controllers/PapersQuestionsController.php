@@ -479,4 +479,10 @@ class PapersQuestionsController extends Controller
         return redirect()->route('papersquestions.index')
             ->with('success', "Paper {$status} successfully.");
     }
+
+    public function print($id)
+    {
+        $paper = Paper::with(['class', 'section', 'teacher', 'questions', 'subject', 'academicYear', 'school'])->find($id);
+        return view('paper.print', compact('paper'));
+    }
 }

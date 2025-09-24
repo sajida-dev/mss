@@ -41,7 +41,8 @@ class RolesAndPermissionsSeeder extends Seeder
             'reports',
             'roles',
             'permissions',
-            'academic-years'
+            'academic-years',
+            'achievements'
         ];
         $actions = ['manage', 'create', 'read', 'update', 'delete'];
         $permissions = [

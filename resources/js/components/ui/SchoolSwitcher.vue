@@ -89,7 +89,7 @@ onUnmounted(() => {
                 </template>
                 <template v-else>
                     <DropdownMenuItem v-for="school in schools" :key="school.id" @click="switchSchool(school)"
-                        :class="[school.id === selectedSchool?.id ? 'bg-primary/10 dark:bg-primary/20' : '', 'flex items-center gap-3 px-4 py-2 cursor-pointer']">
+                        :class="[school.id === selectedSchool?.id ? 'bg-white/10 dark:bg-neutral-900/20' : '', 'flex items-center gap-3 px-4 py-2 cursor-pointer']">
                         <Avatar class="h-8 w-8">
                             <AvatarImage
                                 :src="school.logo_url ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSVJvdr9q2sYXdV5Qn8j47CV7i1nDNK-pIew&s'"
@@ -98,7 +98,7 @@ onUnmounted(() => {
                         <div class="flex flex-col min-w-0">
                             <span class="font-medium truncate">{{ school.name }}</span>
                             <span class="text-xs text-gray-500 dark:text-gray-400 truncate">{{ school.phone || ''
-                            }}</span>
+                                }}</span>
                         </div>
                         <Check v-if="school.id === selectedSchool?.id" class="ml-auto text-primary" />
                     </DropdownMenuItem>

@@ -3,12 +3,14 @@
 namespace Modules\Admissions\App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\Fees\App\Models\Fee;
 use Modules\Schools\App\Models\School;
 use Illuminate\Support\Facades\Storage;
 use Modules\Admissions\Models\StudentEnrollment;
+use Modules\Certificates\App\Models\Certificate;
 use Modules\ClassesSections\app\Models\Section;
 use Modules\ResultsPromotions\app\Models\AcademicResult;
 use Modules\ResultsPromotions\app\Models\ExamResult;
@@ -93,6 +95,7 @@ class Student extends Model
         'class_name',
         'section_name',
         'school_name',
+        'admission_class_name',
     ];
 
     /**
@@ -174,6 +177,10 @@ class Student extends Model
     {
         return $this->hasMany(Fee::class);
     }
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
+    }
 
     public function fee()
     {
@@ -190,6 +197,19 @@ class Student extends Model
         return $this->belongsTo(ClassModel::class, 'class_id');
     }
     public function enrollments()
+    {
+        return $this->hasMany(StudentEnrollment::class);
+    }
+
+    public function getAdmissionClassNameAttribute()
+    {
+        $enrollment = $this->studentEnrollments
+            ->whereNull('admission_date')
+            ->first();
+        return $enrollment?->class_name ?? null;
+    }
+
+    public function studentEnrollments()
     {
         return $this->hasMany(StudentEnrollment::class);
     }

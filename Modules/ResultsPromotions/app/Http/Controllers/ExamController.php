@@ -24,63 +24,7 @@ class ExamController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // public function index()
-    // {
 
-    //     $user = Auth::user();
-
-    //     $role = $user->roles[0]->name;
-    //     $schoolId = session('active_school_id');
-
-    //     $exams = Exam::with('examType', 'class', 'section', 'school', 'academicYear')
-    //         ->withCount('examPapers')
-    //         ->get()
-    //         ->map(function ($exam) {
-    //             $exam->can_be_deleted = $exam->exam_papers_count === 0;
-    //             return $exam;
-    //         });
-    //     $examTypes = ExamType::all();
-
-    //     if ($role === 'superadmin') {
-    //         // Superadmin: get all classes for the selected school
-    //         $classes = ClassModel::forSchool($schoolId)
-    //             ->select('id', 'name')
-    //             ->get()
-    //             ->map(function ($class) {
-    //                 return [
-    //                     'id' => $class->id,
-    //                     'name' => $class->name,
-    //                 ];
-    //             })
-    //             ->values();
-    //     } else if ($role === 'teacher') {
-    //         // Teacher: get the class assigned to them via the teachers table
-    //         $teacher = Teacher::where('user_id', $user->id)
-    //             ->where('school_id', $schoolId)
-    //             ->first();
-
-    //         $classes = [];
-
-    //         if ($teacher && $teacher->class_id) {
-    //             $class = ClassModel::find($teacher->class_id);
-    //             if ($class) {
-    //                 $classes[] = [
-    //                     'id' => $class->id,
-    //                     'name' => $class->name,
-    //                 ];
-    //             }
-    //         }
-    //     } else {
-    //         // Other roles - optional, return empty or handle accordingly
-    //         $classes = collect();
-    //     }
-
-    //     return Inertia::render('Exams/ExamsIndex', [
-    //         'examTypes' => $examTypes,
-    //         'exams' => $exams,
-    //         'classes' => $classes,
-    //     ]);
-    // }
 
     public function index(Request $request)
     {

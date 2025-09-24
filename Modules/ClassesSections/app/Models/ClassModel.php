@@ -3,6 +3,7 @@
 namespace Modules\ClassesSections\App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Modules\Admissions\Models\StudentEnrollment;
 use Modules\ClassesSections\App\Models\Section;
 use Modules\ClassesSections\App\Models\Subject;
 use Modules\ClassesSections\App\Models\ClassSchool;
@@ -16,6 +17,10 @@ class ClassModel extends Model
     protected $table = 'classes';
     protected $fillable = ['name'];
 
+    public function studentEnrollments()
+    {
+        return $this->hasMany(StudentEnrollment::class);
+    }
 
     public function classSchools()
     {

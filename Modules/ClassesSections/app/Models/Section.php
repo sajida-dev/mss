@@ -5,6 +5,7 @@ namespace Modules\ClassesSections\App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Modules\Admissions\Models\StudentEnrollment;
 
 class Section extends Model
 {
@@ -26,5 +27,10 @@ class Section extends Model
             'section_id',
             'class_school_id'
         );
+    }
+
+    public function studentEnrollments()
+    {
+        return $this->hasMany(StudentEnrollment::class);
     }
 }

@@ -39,22 +39,22 @@ class StudentEnrollment extends Model
 
     public function getStudentNameAttribute()
     {
-        return $this->student->name;
+        return $this->student?->name;
     }
 
     public function getClassNameAttribute()
     {
-        return $this->class->name;
+        return $this->class?->name;
     }
 
     public function getSectionNameAttribute()
     {
-        return $this->section->name;
+        return $this->section?->name;
     }
 
     public function getSchoolNameAttribute()
     {
-        return $this->school->name;
+        return $this->school?->name;
     }
 
     public function student(): BelongsTo
@@ -76,9 +76,4 @@ class StudentEnrollment extends Model
     {
         return $this->belongsTo(Section::class);
     }
-
-    // protected static function newFactory(): StudentEnrollmentFactory
-    // {
-    //     // return StudentEnrollmentFactory::new();
-    // }
 }

@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Modules\Certificates\App\Models\Certificate;
 use Modules\ResultsPromotions\app\Models\Exam;
 
 class AcademicYear extends Model
@@ -29,5 +31,9 @@ class AcademicYear extends Model
     public function exams()
     {
         return $this->hasMany(Exam::class, 'academic_year_id');
+    }
+    public function certificates(): HasMany
+    {
+        return $this->hasMany(Certificate::class);
     }
 }

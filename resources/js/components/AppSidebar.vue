@@ -6,81 +6,76 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, Sid
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { usePermissions } from '@/composables/usePermissions';
+import AppLogo from './AppLogo.vue';
 
 const { can } = usePermissions();
+// Import the chosen icons from lucide‑vue‑next
 import {
-    Building2,
-    GraduationCap,
-    Users,
+    LayoutDashboard,
     School,
+    Calendar,
+    Layers,
+    BookOpen,
     UserPlus,
+    User,
+    GraduationCap,
     CreditCard,
     FileText,
-    BarChart3,
-    Receipt,
+    CalendarCheck,
+    ClipboardList,
+    ChartPie,
     Award,
-    LayoutGrid,
-    BookOpenCheck,
-    CalendarCheck
+    ChartColumn,
 } from 'lucide-vue-next';
-import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: '/dashboard',
-        icon: LayoutGrid,
+        icon: LayoutDashboard,
     },
     {
         title: 'Manage Schools',
         href: '/schools',
-        icon: Building2,
+        icon: School,
         permission: 'manage-schools',
-
     },
     {
         title: 'Manage Academic Years',
         href: '/admin/academic-years',
-        icon: Building2,
+        icon: Calendar,
         permission: 'manage-academic-years',
-
     },
     {
         title: 'Manage Classes & Sections',
         href: '/manage/classes-sections',
-        icon: School,
+        icon: Layers,
         permission: 'manage-classes',
-
     },
     {
         title: 'Manage Subjects',
         href: '/subjects',
-        icon: BookOpenCheck,
+        icon: BookOpen,
         permission: 'manage-subjects',
-
     },
     {
         title: 'Manage Admissions',
         href: '/admissions',
         icon: UserPlus,
         permission: 'manage-admissions',
-
     },
     {
         title: 'Manage Teachers',
         href: '/teachers',
-        icon: Users,
+        icon: User,  // or Users if you want multiple figure
         permission: 'manage-teachers',
-
     },
     {
         title: 'Manage Students',
         href: '/students',
         icon: GraduationCap,
         permission: 'manage-students',
-
     },
-
     {
         title: 'Manage Fees',
         href: '/fees',
@@ -102,24 +97,24 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Manage Exams',
         href: '/exams',
-        icon: Receipt,
+        icon: ClipboardList,
         permission: 'manage-exams',
         matchRoutes: [
             '/exams',
             '/exam-types',
-            '/exam-papers'
-        ]
+            '/exam-papers',
+        ],
     },
     {
         title: 'Manage Results',
         href: '/exam-results',
-        icon: BarChart3,
-        permission: 'manage-exam-results'
+        icon: ChartPie,
+        permission: 'manage-exam-results',
     },
     {
         title: 'Manage Reports',
         href: '/reports',
-        icon: BarChart3,
+        icon: ChartColumn,
         permission: 'manage-reports',
     },
     {
@@ -129,7 +124,6 @@ const mainNavItems: NavItem[] = [
         permission: 'manage-certificates',
     },
 ];
-
 const footerNavItems: NavItem[] = [];
 
 const filteredNavItems = mainNavItems.filter((item) => {

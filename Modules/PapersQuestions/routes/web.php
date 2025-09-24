@@ -13,4 +13,7 @@ Route::middleware(['auth', 'set.active.school', 'verified', 'team.permission'])-
     // Route to toggle publish status
     Route::patch('papersquestions/{id}/toggle-publish', [PapersQuestionsController::class, 'togglePublish'])
         ->name('papersquestions.toggle-publish');
+    // Route to print paper
+    Route::get('papersquestions/{id}/print', [PapersQuestionsController::class, 'print'])
+        ->name('papersquestions.print');
 });

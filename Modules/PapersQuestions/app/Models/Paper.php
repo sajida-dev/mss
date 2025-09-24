@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\ClassesSections\app\Models\Section;
 use Modules\ClassesSections\app\Models\Subject;
+use Modules\Schools\App\Models\School;
 use Modules\Teachers\Models\Teacher;
 
 class Paper extends Model
@@ -44,6 +45,7 @@ class Paper extends Model
         'teacher_name',
         'section_name',
         'subject_name',
+        'school_name',
     ];
 
     protected $casts = [
@@ -76,6 +78,11 @@ class Paper extends Model
     public function questions(): HasMany
     {
         return $this->hasMany(Question::class);
+    }
+
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class, 'school_id');
     }
 
     // Get questions grouped by section
@@ -116,5 +123,9 @@ class Paper extends Model
     public function getSubjectNameAttribute()
     {
         return $this->subject?->name;
+    }
+    public function getSchoolNameAttribute()
+    {
+        return $this->school?->name;
     }
 }

@@ -163,36 +163,25 @@
                 row-class="hover:bg-purple-50 dark:hover:bg-purple-900/60 transition cursor-pointer border-b border-neutral-100 dark:border-neutral-800">
                 <template #item-title="row">
                     <div class="font-medium text-gray-900 dark:text-gray-100">{{ row.title }}</div>
-                    <div class="text-sm text-gray-500 dark:text-gray-400">
-                        {{ row.subject_name || 'No Subject' }}
-                    </div>
                 </template>
                 <template #item-class_section="row">
                     <div class="text-gray-900 dark:text-gray-100">
-                        <div class="font-medium">{{ row.class_name || '-' }}</div>
-                        <div class="text-sm text-gray-500 dark:text-gray-400">
+                        <div class="font-medium text-xs">{{ row.class_name || '-' }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">
                             {{ row.section_name || 'No Section' }}
                         </div>
                     </div>
                 </template>
-                <!-- <template #item-subject="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.subject_name || '-' }}</span>
-                </template>
-                <template #item-teacher="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.teacher_name || '-' }}</span>
-                </template> -->
                 <template #item-duration="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.time_duration || 0 }} min</span>
+                    <span class="text-gray-900 text-xs dark:text-gray-100">{{ row.time_duration || 0 }} min</span>
                 </template>
                 <template #item-total_marks="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.total_marks || 0 }} marks</span>
+                    <span class="text-gray-900 text-xs dark:text-gray-100">{{ row.total_marks || 0 }} marks</span>
                 </template>
                 <template #item-questions_count="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.questions_count || 0 }} questions</span>
+                    <span class="text-gray-900 text-xs dark:text-gray-100">{{ row.questions_count || 0 }}
+                        questions</span>
                 </template>
-                <!-- <template #item-year="row">
-                    <span class="text-gray-900 dark:text-gray-100">{{ row.academic_year_name || '-' }}</span>
-                </template> -->
                 <template #item-published="row">
                     <span :class="{
                         'inline-block rounded-full px-2 py-0.5 text-xs font-semibold': true,
@@ -206,12 +195,12 @@
                     <button v-can="'read-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="viewPaper(row.id)" aria-label="View Paper" title="View Paper">
-                        <Eye class="w-5 h-5" />
+                        <Eye class="w-4 h-4" />
                     </button>
                     <button v-can="'print-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-400 mr-1"
                         @click="printPaper(row.id)" aria-label="Print Paper" title="Print Paper">
-                        <Printer class="w-5 h-5" />
+                        <Printer class="w-4 h-4" />
                     </button>
                     <button v-can="'publish-papers'" :class="[
                         'inline-flex items-center justify-center rounded-full p-2 mr-1 focus:outline-none focus:ring-2',
@@ -221,18 +210,18 @@
                     ]" @click="togglePublishStatus(row.id, row.published)"
                         :aria-label="row.published ? 'Unpublish Paper' : 'Publish Paper'"
                         :title="row.published ? 'Unpublish Paper' : 'Publish Paper'">
-                        <Lock v-if="row.published" class="w-5 h-5" />
-                        <Rocket v-else class="w-5 h-5" />
+                        <Lock v-if="row.published" class="w-4 h-4" />
+                        <Rocket v-else class="w-4 h-4" />
                     </button>
                     <button v-can="'update-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-green-500 focus:outline-none focus:ring-2 focus:ring-green-400 mr-1"
                         @click="editPaper(row.id)" aria-label="Edit Paper" title="Edit Paper">
-                        <Edit class="w-5 h-5" />
+                        <Edit class="w-4 h-4" />
                     </button>
                     <button v-can="'delete-papers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeletePaper(row.id)" aria-label="Delete Paper" title="Delete Paper">
-                        <Trash class="w-5 h-5" />
+                        <Trash class="w-4 h-4" />
                     </button>
                 </template>
             </BaseDataTable>
@@ -286,8 +275,6 @@
                 </DialogContent>
             </Dialog>
         </div>
-
-
     </AppLayout>
 </template>
 

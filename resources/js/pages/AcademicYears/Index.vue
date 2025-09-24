@@ -101,7 +101,6 @@ const props = defineProps<{ academicYears: PaginationResponse }>();
 
 // Reactive states
 const academicYears = ref<PaginationResponse>({ ...props.academicYears });
-console.log('academicYears', academicYears.value);
 const loading = ref(false);
 const modalOpen = ref(false);
 const isEdit = ref(false);

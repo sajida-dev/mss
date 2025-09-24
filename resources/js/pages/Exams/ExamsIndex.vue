@@ -339,7 +339,6 @@ function handleSubmit() {
     loading.value = true;
     if (isEdit.value && form.id !== null) {
         form.put(`/exams/${form.id}`, {
-
             preserveScroll: true,
             onSuccess: () => {
                 toast.success('Exam updated successfully!');

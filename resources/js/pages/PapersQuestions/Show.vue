@@ -1,8 +1,7 @@
 <template>
     <AppLayout>
 
-        <Head title="View Paper" />
-
+        <Head :title="paper.title ?? 'Exam Paper'" />
         <div class="max-w-4xl mx-auto w-full px-4 py-8 dark:text-neutral-200 text-neutral-900">
             <!-- Paper Header -->
             <div class="header">
@@ -24,7 +23,6 @@
 
                     </div>
                 </div>
-
                 <!-- Exam Details -->
                 <div class="exam-details flex flex-row justify-between items-center mb-3">
                     <div class="text-neutral-700 dark:text-neutral-300">
@@ -64,12 +62,9 @@
                         <li>There is no negative marking.</li>
                     </ol>
                 </div>
-
             </div>
-
             <!-- Questions by Section -->
             <div class="space-y-8">
-
                 <!-- Section A: Objective Questions -->
                 <div v-if="getSectionQuestions('objective').length > 0" class="section">
                     <hr class="border-neutral-300 my-6">
@@ -84,35 +79,31 @@
                             Math.min(getSectionCount('objective'), 20) }}</strong>
                         will be considered for evaluation.
                     </p>
-
-                    <div class="space-y-6">
-                        <div class="question" v-for="(question, index) in getSectionQuestions('objective')"
+                    <div class="space-y-2">
+                        <div class="question " v-for="(question, index) in getSectionQuestions('objective')"
                             :key="question.id">
                             <div class="question-row">
                                 <div class="question-number">{{ question.question_number || index + 1 }}.</div>
                                 <div class="question-text">{{ question.text }}</div>
                                 <div class="question-marks">({{ question.marks }} marks)</div>
                             </div>
-
                             <!-- Multiple Choice Options -->
-                            <div v-if="question.type === 'multiple_choice' && question.options" class="options">
+                            <div v-if="question.type === 'multiple_choice' && question.options"
+                                class="options grid grid-cols-4">
                                 <div v-for="(option, optionIndex) in question.options" :key="optionIndex"
                                     class="option">
                                     <span class="option-label">{{ String.fromCharCode(97 + optionIndex) }})</span>
                                     <span>{{ option }}</span>
                                 </div>
                             </div>
-
                             <!-- True/False Options -->
-                            <div v-if="question.type === 'true_false'" class="options">
+                            <div v-if="question.type === 'true_false'" class="options grid grid-cols-2">
                                 <div class="option"><span class="option-label">a)</span> True</div>
                                 <div class="option"><span class="option-label">b)</span> False</div>
                             </div>
                         </div>
                     </div>
                 </div>
-
-
                 <!-- Section B: Short Questions -->
                 <div v-if="getSectionQuestions('short_questions').length > 0" class="section">
                     <hr class="border-neutral-300 my-6">
@@ -125,7 +116,7 @@
                         }} questions</strong>.
                     </p>
 
-                    <div class="space-y-6">
+                    <div class="space-y-2">
                         <div class="question" v-for="(question, index) in getSectionQuestions('short_questions')"
                             :key="question.id">
                             <div class="question-row">
@@ -136,8 +127,6 @@
                         </div>
                     </div>
                 </div>
-
-
                 <!-- Section C: Long Questions -->
                 <div v-if="getSectionQuestions('long_questions').length > 0" class="section">
                     <hr class="border-neutral-300 my-6">
@@ -150,7 +139,7 @@
                             questions</strong>.
                     </p>
 
-                    <div class="space-y-6">
+                    <div class="space-y-2">
 
                         <div class="question" v-for="(question, index) in getSectionQuestions('long_questions')"
                             :key="question.id">
@@ -171,17 +160,16 @@
                     <div v-if="schoolLogo" class="school-logo mb-2">
                         <img :src="schoolLogo" :alt="activeSchool.name" class="w-8 h-8 rounded-full object-contain" />
                     </div>
-                    <div>{{ activeSchool?.name || 'SCHOOL NAME' }}, {{ activeSchool?.address || 'Location' }}</div>
+                    <div>{{ paper?.school_name || 'SCHOOL NAME' }}, {{ paper?.school?.address || 'Location' }}</div>
                 </div>
                 <div>Page 1</div>
             </div>
-
             <!-- Action Buttons -->
             <div class="flex justify-center space-x-4 mt-15 no-print">
                 <Button variant="outline" @click="goBack">
                     Back to Papers
                 </Button>
-                <Button v-can="'print-papers'" @click="printPaper">
+                <Button v-can="'print-papers'" @click="printPaper(paper.id)">
                     Print Paper
                 </Button>
             </div>
@@ -232,6 +220,8 @@ interface Paper {
     title: string;
     class_id: number;
     class?: ClassModel;
+    school?: School;
+    school_name?: string;
     subject?: Subject;
     total_marks?: number;
     time_duration?: number;
@@ -315,297 +305,48 @@ function goBack() {
     router.visit(route('papersquestions.index'));
 }
 
-function printPaper() {
-    // Create a new window for printing
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-        alert('Please allow popups to print the paper');
-        return;
-    }
+function printPaper(paperId: number) {
+    const url = route('papersquestions.print', paperId);
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load voucher.");
+            }
+            return response.text();
+        })
+        .then(htmlContent => {
+            const printFrame = document.createElement("iframe");
+            printFrame.style.position = "fixed";
+            printFrame.style.right = "0";
+            printFrame.style.bottom = "0";
+            printFrame.style.width = "0";
+            printFrame.style.height = "0";
+            printFrame.style.border = "0";
+            printFrame.style.visibility = "hidden";
 
-    // Get the paper content
-    const paperContent = document.querySelector('.max-w-4xl');
-    if (!paperContent) return;
+            document.body.appendChild(printFrame);
 
-    // Create the print HTML with improved styling
-    const printHTML = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>${paper.value.title || 'Exam Paper'}</title>
-            <style>
-                @page {
-                    size: A4;
-                    margin: 1in;
-                }
-                
-                * {
-                    box-sizing: border-box;
-                }
-                
-                body {
-                    font-family: 'Arial body', serif;
-                    margin: 0;
-                    padding: 0;
-                    line-height: 1.6;
-                    color: black;
-                    background: white;
-                    font-size: 12pt;
-                }
-                
-                .paper-container {
-                    max-width: 100%;
-                    margin: 0 auto;
-                }
-                
-                .header {
-                    text-align: center;
-                    margin-bottom: 30px;
-                    page-break-after: avoid;
-                }
-                
-                .header h1 {
-                    font-size: 18pt;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                    text-transform: uppercase;
-                }
-                
-                .header .subject-info {
-                    font-size: 14pt;
-                    margin-bottom: 10px;
-                }
-                
-                .header .grade-info {
-                    font-size: 14pt;
-                    font-weight: bold;
-                }
-                
-                .school-info {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: flex-start;
-                    margin-bottom: 30px;
-                    page-break-after: avoid;
-                }
-                
-                .school-logo {
-                    width: 60px;
-                    height: 60px;
-                    background: #3b82f6;
-                    border-radius: 50%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    color: white;
-                    font-weight: bold;
-                    font-size: 18px;
-                }
-                
-                .school-details {
-                    text-align: center;
-                }
-                
-                .school-name {
-                    font-weight: bold;
-                    font-size: 12pt;
-                }
-                
-                .school-address {
-                    font-size: 10pt;
-                }
-                
-                .exam-details {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 20px;
-                    font-size: 12pt;
-                    page-break-after: avoid;
-                }
-                
-                .instructions {
-                    margin-bottom: 30px;
-                    page-break-after: avoid;
-                }
-                
-                .instructions h3 {
-                    font-size: 14pt;
-                    font-weight: bold;
-                    margin-bottom: 10px;
-                }
-                
-                .instructions ol {
-                    margin-left: 20px;
-                    font-size: 11pt;
-                }
-                
-                .instructions li {
-                    margin-bottom: 5px;
-                }
-                
-                .section {
-                    margin-bottom: 40px;
-                    page-break-inside: avoid;
-                }
-                
-                .section h2 {
-                    text-align: center;
-                    text-decoration: underline;
-                    margin-bottom: 15px;
-                    font-size: 14pt;
-                    font-weight: bold;
-                    page-break-after: avoid;
-                }
-                
-                .section p {
-                    text-align: center;
-                    margin-bottom: 20px;
-                    font-size: 11pt;
-                    page-break-after: avoid;
-                }
-                
-                .question {
-                    margin-bottom: 20px;
-                    page-break-inside: avoid;
-                }
-                
-                .question-header {
-                    display: flex;
-                    align-items: flex-start;
-                    gap: 10px;
-                    margin-bottom: 10px;
-                }
-                
-                .question-number {
-                    font-weight: bold;
-                    min-width: 30px;
-                    font-size: 11pt;
-                }
-                
-                .question-text {
-                    flex: 1;
-                    font-size: 11pt;
-                }
-                
-                .options {
-                    margin-left: 20px;
-                    margin-top: 10px;
-                }
-                
-                .option {
-                    margin-bottom: 5px;
-                    font-size: 11pt;
-                }
-                
-                .option-label {
-                    font-weight: bold;
-                    min-width: 20px;
-                    display: inline-block;
-                }
-                
-                .footer {
-                    margin-top: 40px;
-                    display: flex;
-                    justify-content: space-between;
-                    font-size: 10pt;
-                    border-top: 1px solid #ccc;
-                    padding-top: 10px;
-                    page-break-before: avoid;
-                }
-                
-                hr {
-                    border: none;
-                    border-top: 1px solid #ccc;
-                    margin: 20px 0;
-                }
-                    .question-row {
-                    display: flex;
-                    align-items: flex-start;
-                    justify-content: space-between;
-                    gap: 10px;
-                    margin-bottom: 8px;
-                    page-break-inside: avoid;
-                }
+            const doc = printFrame.contentWindow?.document;
+            if (doc) {
+                doc.open();
+                doc.write(htmlContent);
+                doc.close();
 
-                .question-number {
-                    width: 30px;
-                    font-weight: bold;
-                    font-size: 11pt;
-                }
+                printFrame.onload = () => {
+                    printFrame.contentWindow?.focus();
+                    printFrame.contentWindow?.print();
 
-                .question-text {
-                    flex: 1;
-                    font-size: 11pt;
-                }
-
-                .question-marks {
-                    font-size: 10pt;
-                    font-weight: normal;
-                    white-space: nowrap;
-                    color: #444;
-                }
-
-                .options {
-                    margin-left: 40px;
-                    margin-top: 6px;
-                }
-
-                .option {
-                    margin-bottom: 4px;
-                    font-size: 10.5pt;
-                }
-
-                .option-label {
-                    font-weight: bold;
-                    margin-right: 4px;
-                }               
-                @media print {
-                    body { 
-                         margin: 20; 
-                        -webkit-print-color-adjust: exact;
-                        color-adjust: exact;
-                    }
-                    .section { page-break-inside: avoid; }
-                    .question { page-break-inside: avoid; }
-                    .header { page-break-after: avoid; }
-                    .instructions { page-break-after: avoid; }
-                    .footer {margin-top: 15px; page-break-before: avoid; }
-                    @page {
-                        size: A4;
-                        margin: 1in;
-                    }
-
-                    body {
-                        font-family: 'Times New Roman', serif;
-                        font-size: 11pt;
-                        color: black;
-                    }
-
-                    .question-row {
-                        page-break-inside: avoid;
-                    }
-
-                }
-            </style>
-        </head>
-        <body>
-            <div class="paper-container">
-                ${paperContent.innerHTML}
-            </div>
-        </body>
-        </html>
-    `;
-
-    printWindow.document.write(printHTML);
-    printWindow.document.close();
-
-    // Wait for content to load then print
-    printWindow.onload = function () {
-        setTimeout(() => {
-            printWindow.print();
-            printWindow.close();
-        }, 500);
-    };
+                    // Clean up after printing
+                    setTimeout(() => {
+                        document.body.removeChild(printFrame);
+                    }, 1000);
+                };
+            }
+        })
+        .catch(error => {
+            console.error("Printing failed:", error);
+            alert("Failed to print voucher. Please try again.");
+        });
 }
 </script>
 
@@ -640,6 +381,7 @@ function printPaper() {
 .options {
     margin-left: 40px;
     margin-top: 6px;
+
 }
 
 .option {

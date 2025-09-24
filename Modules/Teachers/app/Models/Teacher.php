@@ -9,6 +9,7 @@ use Modules\ClassesSections\App\Models\ClassModel;
 use Modules\ClassesSections\App\Models\Subject;
 use Modules\Schools\App\Models\School;
 use Modules\Teachers\Models\ClassSubjectTeacher;
+use Spatie\Permission\Models\Role;
 
 class Teacher extends Model
 {
@@ -42,12 +43,12 @@ class Teacher extends Model
 
     public function getSchoolNameAttribute()
     {
-        return $this->school->name;
+        return $this->school?->name;
     }
 
     public function getClassNameAttribute()
     {
-        return $this->class->name;
+        return $this->class?->name;
     }
 
     public function user()
@@ -85,7 +86,7 @@ class Teacher extends Model
 
     public function role()
     {
-        return $this->belongsTo(\Spatie\Permission\Models\Role::class, 'role_id');
+        return $this->belongsTo(Role::class, 'role_id');
     }
 
     // Scope for school-specific teachers

@@ -10,8 +10,10 @@ return new class extends Migration
     {
         Schema::create('certificates', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('achievement_id')->nullable()->constrained();
+            $table->foreignId('school_id')->constrained()->cascadeOnDelete();
             $table->unsignedBigInteger('student_id');
-            $table->string('type');
+            $table->enum('type', ['sports', 'academic', 'other'])->default('academic');
             $table->date('issued_at');
             $table->text('details')->nullable();
             $table->unsignedBigInteger('academic_year_id')->nullable();
