@@ -88,7 +88,7 @@ class CertificatesController extends Controller
             'registration_number'        => 'required|exists:students,registration_number',
             'type'              => 'required|string|max:255',
             'issued_at'         => 'required|date',
-            'details'           => 'required|string',
+            'details'           => 'nullable|string',
             'academic_year_id'  => 'required|exists:academic_years,id',
         ]);
         $data['school_id'] = session('active_school_id');
@@ -111,7 +111,7 @@ class CertificatesController extends Controller
             'registration_number'  => 'required|exists:students,registration_number',
             'type'                 => 'required|string|max:255',
             'issued_at'            => 'required|date',
-            'details'              => 'required|string',
+            'details'              => 'nullable|string',
             'academic_year_id'     => 'required|exists:academic_years,id',
         ]);
 
@@ -140,11 +140,18 @@ class CertificatesController extends Controller
         return redirect()->back()->with('success', 'Certificate deleted.');
     }
 
-    public function printCertificate(Certificate $certificate)
+    public function printCertificate(Certificate $certificate, string $type)
     {
         try {
             $certificate->load(['student', 'achievement', 'school', 'academicYear']);
+
             // dd($certificate);
+            if ($type === 'achievement') {
+                return view('certificate.general', [
+                    'student' => $certificate->student,
+                    'certificate' => $certificate,
+                ]);
+            }
             return view('certificate.certificate', [
                 'student' => $certificate->student,
                 'certificate' => $certificate,

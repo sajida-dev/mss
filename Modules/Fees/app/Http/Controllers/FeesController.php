@@ -26,7 +26,11 @@ class FeesController extends Controller
     public function index(Request $request)
     {
         $schoolId = session('active_school_id');
-        $query = Fee::query()->with(['student.school', 'student.class']);
+        $query = Fee::query()->with([
+            'student:id,name,school_id,class_id,registration_number',
+            'student.school:id,name',
+            'student.class:id,name'
+        ]);
 
         // Filter by selected school
         if ($schoolId) {

@@ -35,7 +35,7 @@
                     </h2>
                     <p class="text-sm text-gray-600 dark:text-gray-400">
                         Total Fee: <span class="font-medium text-gray-900 dark:text-gray-100">Rs {{ fee?.amount
-                        }}</span>
+                            }}</span>
                     </p>
                 </div>
                 <!-- Installment Generator -->

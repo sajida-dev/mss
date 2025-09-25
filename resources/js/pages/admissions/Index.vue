@@ -102,7 +102,7 @@
                     </button>
                     <button v-can="'print-vouchers'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
-                        @click="printVoucher(row.id)" aria-label="Print Voucher" title="Print Voucher">
+                        @click="printVoucher(row.fee.id)" aria-label="Print Voucher" title="Print Voucher">
                         <Printer class="w-5 h-5" />
                     </button>
                     <button v-if="row.status === 'applicant'" v-can="'reject-admissions'"
@@ -587,9 +587,7 @@ const deleteStudent = () => {
     showDeleteDialog.value = false;
 };
 
-function printVoucher(studentId: number) {
-    router.get(route('fees.voucher', { student: studentId }));
-}
+
 
 const voucherFiles = ref<Record<number, File | null>>({});
 function handleVoucherFileChange(e: Event, studentId: number) {
@@ -690,6 +688,49 @@ function onSearchInput() {
 function clearSearch() {
     filtersForm.search = '';
     fetchData();
+}
+function printVoucher(feeId: number) {
+    const url = route('fees.voucher', { id: feeId });
+    fetch(url)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error("Failed to load voucher.");
+            }
+            return response.text();
+        })
+        .then(htmlContent => {
+            const printFrame = document.createElement("iframe");
+            printFrame.style.position = "fixed";
+            printFrame.style.right = "0";
+            printFrame.style.bottom = "0";
+            printFrame.style.width = "0";
+            printFrame.style.height = "0";
+            printFrame.style.border = "0";
+            printFrame.style.visibility = "hidden";
+
+            document.body.appendChild(printFrame);
+
+            const doc = printFrame.contentWindow?.document;
+            if (doc) {
+                doc.open();
+                doc.write(htmlContent);
+                doc.close();
+
+                printFrame.onload = () => {
+                    printFrame.contentWindow?.focus();
+                    printFrame.contentWindow?.print();
+
+                    // Clean up after printing
+                    setTimeout(() => {
+                        document.body.removeChild(printFrame);
+                    }, 1000);
+                };
+            }
+        })
+        .catch(error => {
+            console.error("Printing failed:", error);
+            alert("Failed to print voucher. Please try again.");
+        });
 }
 </script>
 

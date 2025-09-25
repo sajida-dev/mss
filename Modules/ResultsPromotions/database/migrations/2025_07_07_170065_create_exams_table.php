@@ -23,7 +23,6 @@ return new class extends Migration
             $table->text('instructions')->nullable();
             $table->timestamps();
             $table->softDeletes();
-
             $table->foreignId('exam_type_id')->constrained('exam_types')->onDelete('restrict')->onUpdate('cascade');
             $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade');
             $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
@@ -32,6 +31,9 @@ return new class extends Migration
             $table->foreign('class_id')->references('id')->on('classes')->onDelete('cascade')->onUpdate('cascade');
             $table->foreign('section_id')->references('id')->on('sections')->onDelete('set null');
             $table->index(['school_id', 'class_id', 'section_id', 'start_date', 'academic_year_id'], 'exam_school_class_section_index');
+            $table->index(['result_entry_deadline']);
+            $table->index(['exam_type_id']);
+            $table->index(['academic_year_id']);
         });
     }
 

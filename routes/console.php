@@ -10,5 +10,4 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command(ProcessExamStatuses::class)->everyMinute();
-// Schedule::command(CalculateAcademicResults::class)->everyMinute();
+Schedule::command(ProcessExamStatuses::class)->dailyAt('01:00');

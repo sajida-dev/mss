@@ -26,9 +26,13 @@
             <!-- Data Table -->
             <BaseDataTable :headers="headers" :items="certificates" :loading="loading">
                 <template #item-actions="row">
-                    <button class="text-green-500 mr-2" size="sm" @click="printCertificate(row)"
-                        title="Print Certificate">
+                    <button class="text-yellow-500 mr-2" size="sm" @click="printCertificate(row.id, 'achievement')"
+                        title="Print Acievement Certificate">
                         <Printer class="w-5 h-5" />
+                    </button>
+                    <button class="text-green-500 mr-2" size="sm" @click="printCertificate(row.id, 'leaving')"
+                        title="Print Leaving Certificate">
+                        <GraduationCap class="w-5 h-5" />
                     </button>
                     <button class="text-blue-500 mr-2" size="sm" @click="edit(row)" title="Edit Certificate">
                         <Edit class="w-5 h-5" />
@@ -97,7 +101,7 @@ import TextInput from '@/components/form/TextInput.vue';
 import SelectInput from '@/components/form/SelectInput.vue';
 import { Button } from '@/components/ui/button';
 import { toast } from 'vue3-toastify';
-import { Edit, Printer, Trash } from 'lucide-vue-next';
+import { Edit, GraduationCap, Printer, Trash } from 'lucide-vue-next';
 
 interface Certificate {
     id: number;
@@ -263,11 +267,12 @@ function confirmDelete() {
     });
 }
 
-function printCertificate(certificateId: number) {
-    const url = route('certificates.print', { id: certificateId });
+function printCertificate(certificateId: number, type: 'achievement' | 'leaving') {
+    const url = route('certificates.print', { certificate: certificateId, type: type });
     fetch(url)
         .then(response => {
             if (!response.ok) {
+                console.log('response', response)
                 throw new Error("Failed to load voucher.");
             }
             return response.text();

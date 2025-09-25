@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         // for single subject of single class
-        Schema::create('exam_paper', function (Blueprint $table) {
+        Schema::create('exam_papers', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('exam_id');
             $table->unsignedBigInteger('paper_id');

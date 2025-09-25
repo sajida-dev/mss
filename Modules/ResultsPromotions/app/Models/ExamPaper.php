@@ -23,7 +23,7 @@ class ExamPaper extends Model
 
     use SoftDeletes;
 
-    protected $table = 'exam_paper';
+    protected $table = 'exam_papers';
     protected $fillable = [
         'exam_id',
         'paper_id',

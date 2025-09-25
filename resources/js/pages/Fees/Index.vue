@@ -200,15 +200,20 @@
                     <span class="font-semibold">Rs. {{ row.amount.toLocaleString() }}</span>
                 </template>
                 <template #item-actions="row">
+                    <button v-can="'print-vouchers'"
+                        class="inline-flex items-center justify-center rounded-full p-2 text-green-600 focus:outline-none focus:ring-2 focus:ring-green-400"
+                        @click="printVoucher(row.id)" aria-label="Print Voucher" title="Print Voucher">
+                        <Printer class="w-4 h-4" />
+                    </button>
                     <button v-can="'update-fees'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-400 mr-1"
                         @click="editFee(row.id)" aria-label="Edit Fee" title="Edit Fee">
-                        <Icon name="edit" class="w-5 h-5" />
+                        <Icon name="edit" class="w-4 h-4" />
                     </button>
                     <button v-can="'delete-fees'"
                         class="inline-flex items-center justify-center rounded-full p-2 text-red-500 focus:outline-none focus:ring-2 focus:ring-red-400"
                         @click="askDeleteFee(row.id)" aria-label="Delete Fee" title="Delete Fee">
-                        <Icon name="trash" class="w-5 h-5" />
+                        <Icon name="trash" class="w-4 h-4" />
                     </button>
                 </template>
                 <template #item-expand="row">
@@ -236,7 +241,7 @@
                                     class="w-24 h-24 rounded-full object-cover border-4 border-purple-500" />
                                 <div>
                                     <h2 class="text-xl font-semibold text-gray-800 dark:text-white">{{ row.student_name
-                                    }}
+                                        }}
                                     </h2>
                                     <p class="text-sm text-gray-500 dark:text-gray-300 flex items-center gap-1">
                                         <ClipboardList class="w-4 h-4" /> Registration #: {{
@@ -259,7 +264,7 @@
                                 <Button v-can="'print-vouchers'"
                                     v-if="row.status === 'unpaid' && row.due_date > today && row.type !== 'installments'"
                                     variant="default" class="bg-indigo-700 hover:bg-indigo-800 text-white text-sm"
-                                    @click="printVoucher(row.id)">
+                                    @click="printVoucher(row)">
                                     <Printer class="w-4 h-4 mr-2" /> Print Voucher
                                 </Button>
 
@@ -478,8 +483,8 @@ const breadcrumbItems: BreadcrumbItem[] = [
         href: route('fees.index'),
     },
 ];
-function printVoucher(installmentId: number) {
-    const url = route('installments.voucher', { id: installmentId });
+function printVoucher(feeId: number) {
+    const url = route('fees.voucher', { id: feeId });
     fetch(url)
         .then(response => {
             if (!response.ok) {
