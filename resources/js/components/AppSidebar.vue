@@ -111,12 +111,12 @@ const mainNavItems: NavItem[] = [
         icon: ChartPie,
         permission: 'manage-exam-results',
     },
-    {
-        title: 'Manage Reports',
-        href: '/reports',
-        icon: ChartColumn,
-        permission: 'manage-reports',
-    },
+    // {
+    //     title: 'Manage Reports',
+    //     href: '/reports',
+    //     icon: ChartColumn,
+    //     permission: 'manage-reports',
+    // },
     {
         title: 'Manage Certificates',
         href: '/certificates',
